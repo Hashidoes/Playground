@@ -4,7 +4,7 @@ import { gaugeZero, home as copy } from '../copy/strings';
 import type { Language, Member } from '../data/types';
 import { useTheme } from '../theme/ThemeProvider';
 import { radius, space } from '../theme/tokens';
-import { Avatar, Button, Icon, IconButton, Text } from './primitives';
+import { Avatar, Icon, IconButton, Text } from './primitives';
 
 // ---------- GreetingHeader ----------
 
@@ -65,7 +65,6 @@ export function ProgressGauge({
   day,
   weekday,
   dateLabel,
-  onAddTask,
 }: {
   percent: number;
   hasTasks: boolean;
@@ -74,8 +73,6 @@ export function ProgressGauge({
   weekday: string;
   /** Spoken date, e.g. "Monday, 23 November". */
   dateLabel: string;
-  /** Shown in the zero state, when nothing is planned for today. */
-  onAddTask?: () => void;
 }) {
   const { colors } = useTheme();
   const v = Math.max(0, Math.min(100, percent));
@@ -84,8 +81,15 @@ export function ProgressGauge({
   return (
     <View style={{ backgroundColor: colors.surfaceRaised, borderRadius: radius.xl, paddingTop: space[5], paddingHorizontal: space[6], paddingBottom: space[4] }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: space[4] }}>
-        {/* In the zero state the message moves into the dial. */}
-        <Text variant="caption" style={{ flex: 1, maxWidth: 170 }} accessibilityLiveRegion="polite">{hasTasks ? message : ''}</Text>
+        {hasTasks ? (
+          <Text variant="caption" style={{ flex: 1, maxWidth: 170 }} accessibilityLiveRegion="polite">{message}</Text>
+        ) : (
+          // Zero state: the headline sits top left, with the empty dial below.
+          <View style={{ flex: 1, gap: space[1] }}>
+            <Text variant="bodyStrong" accessibilityRole="header">{gaugeZero.title}</Text>
+            <Text variant="label" color="inkMuted">{gaugeZero.body}</Text>
+          </View>
+        )}
         <DateBadge day={day} weekday={weekday} label={dateLabel} />
       </View>
       <View
@@ -95,7 +99,7 @@ export function ProgressGauge({
         aria-valuemin={hasTasks ? 0 : undefined}
         aria-valuemax={hasTasks ? 100 : undefined}
         aria-valuenow={hasTasks ? v : undefined}
-        style={{ alignSelf: 'center', width: '100%', maxWidth: 260, aspectRatio: 240 / 200, marginTop: space[2] }}
+        style={{ alignSelf: 'center', width: '100%', maxWidth: 260, aspectRatio: 240 / 200, marginTop: hasTasks ? space[2] : space[8] }}
       >
         <Svg width="100%" height="100%" viewBox="0 0 240 200">
           <Path
@@ -116,14 +120,7 @@ export function ProgressGauge({
             <Text variant="stat" style={{ fontVariant: ['tabular-nums'] }}>{`${v}%`}</Text>
             <Text variant="label" color="inkMuted">{copy.gaugeCaption}</Text>
           </View>
-        ) : (
-          <View style={{ position: 'absolute', left: space[8], right: space[8], top: '28%', alignItems: 'center', gap: space[2] }}>
-            <Icon name="sun" size={28} color={colors.accent} />
-            <Text variant="bodyStrong" style={{ textAlign: 'center' }} accessibilityRole="header">{gaugeZero.title}</Text>
-            <Text variant="label" color="inkMuted" style={{ textAlign: 'center' }}>{gaugeZero.body}</Text>
-            {onAddTask ? <Button label={gaugeZero.action} size="sm" icon="plus" onPress={onAddTask} style={{ marginTop: space[1] }} /> : null}
-          </View>
-        )}
+        ) : null}
       </View>
     </View>
   );

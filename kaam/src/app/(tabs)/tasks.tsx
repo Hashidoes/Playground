@@ -1,4 +1,4 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { Chip, EmptyState, Icon, IconButton, Text } from '../../components/primitives';
@@ -64,19 +64,6 @@ export default function Tasks() {
   const [scope, setScope] = useState<Scope>('everyone');
   const [person, setPerson] = useState<string>('all');
 
-  // Opened from a person on the Household screen: show their tasks for today.
-  const params = useLocalSearchParams<{ who?: string }>();
-  const [appliedWho, setAppliedWho] = useState<string | undefined>(undefined);
-  if (params.who !== appliedWho) {
-    setAppliedWho(params.who);
-    if (params.who) {
-      if (params.who === store.meId) setScope('mine');
-      else {
-        setScope('everyone');
-        setPerson(params.who);
-      }
-    }
-  }
 
   // Everyone: what the household sees (never private). Mine: all of yours, private included.
   const inScope = (t: Task) =>

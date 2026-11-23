@@ -1,19 +1,18 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, View } from 'react-native';
-import { Avatar, Button, Card, ChoiceRow, Icon, IconButton, Text } from '../../components/primitives';
+import { View } from 'react-native';
+import { Avatar, Button, Card, ChoiceRow, IconButton, Text } from '../../components/primitives';
 import { Screen } from '../../components/Screen';
 import { account, addMember, appearance as appearanceCopy, household as copy, memberRow } from '../../copy/strings';
 import { todaysTasks, useStore } from '../../data/store';
 import type { Member } from '../../data/types';
 import { today } from '../../lib/dates';
-import { formatMinutes } from '../../lib/sun';
 import { useTheme, type ThemeName } from '../../theme/ThemeProvider';
 import { radius, space } from '../../theme/tokens';
 
 export default function Household() {
   const store = useStore();
-  const { colors, isEvening, sun, override, choose } = useTheme();
+  const { colors, isEvening, choose } = useTheme();
   const [confirmSignOut, setConfirmSignOut] = useState(false);
   const now = today();
   const todays = todaysTasks(store.tasks);
@@ -24,13 +23,11 @@ export default function Household() {
     const done = mine.filter((t) => t.doneAt).length;
     const meta = copy.rowMeta(mine.length, done) + (m.usesApp === false ? ` · ${memberRow.noApp}` : '');
     return (
-      <Pressable
+      <View
         key={m.id}
-        onPress={() => router.navigate({ pathname: '/tasks', params: { who: m.id } })}
-        accessibilityRole="button"
+        accessible
         accessibilityLabel={`${m.name}, ${copy.roles[m.role]}, ${meta}`}
-        accessibilityHint={memberRow.open(m.name)}
-        style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: space[3], paddingVertical: space[2], opacity: pressed ? 0.7 : 1 })}
+        style={{ flexDirection: 'row', alignItems: 'center', gap: space[3], paddingVertical: space[2] }}
       >
         <Avatar name={m.name} color={m.color} size={42} />
         <View style={{ flex: 1 }}>
@@ -40,8 +37,7 @@ export default function Household() {
         <View style={{ paddingHorizontal: space[3], paddingVertical: space[1], borderRadius: radius.pill, backgroundColor: colors.surfaceSunken }}>
           <Text variant="label">{copy.roles[m.role]}</Text>
         </View>
-        <Icon name="caretRight" size={16} color={colors.inkMuted} />
-      </Pressable>
+      </View>
     );
   };
 
@@ -49,18 +45,20 @@ export default function Household() {
   const helpers = store.members.filter((m) => m.role === 'helper');
 
   const current: ThemeName = isEvening ? 'evening' : 'sunlit';
-  const sunrise = formatMinutes(sun.sunrise);
-  const sunset = formatMinutes(sun.sunset);
-  const caption = override
-    ? appearanceCopy.heldUntil(
-        override.theme === 'evening' ? appearanceCopy.evening : appearanceCopy.sunlit,
-        sun.isDay ? 'sunset' : 'sunrise',
-        sun.isDay ? sunset : sunrise,
-      )
-    : appearanceCopy.auto(sunrise, sunset);
 
   return (
-    <Screen title={store.household.name} right={<IconButton label={addMember.open} size="lg" onPress={() => router.push('/member/new')} />}>
+    <Screen
+      title={store.household.name}
+      fab={
+        <IconButton
+          label={addMember.open}
+          size="lg"
+          variant="raised"
+          onPress={() => router.push('/member/new')}
+          style={{ shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 6 }}
+        />
+      }
+    >
       {onLeaveToday.map((l) => {
         const who = store.memberById(l.memberId);
         const count = todays.filter((t) => t.assigneeId === l.memberId && !t.doneAt).length;
@@ -94,7 +92,6 @@ export default function Household() {
             { value: 'evening', label: appearanceCopy.evening },
           ]}
         />
-        <Text variant="label" color="inkMuted" accessibilityLiveRegion="polite">{caption}</Text>
       </View>
 
       {confirmSignOut ? (

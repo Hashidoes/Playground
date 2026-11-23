@@ -32,8 +32,8 @@ The app runs on **sample data** for an example household (the Nair home). Nothin
 - **Notice board:** post a notice that shows until a chosen date.
 - **Calendar:** week strip, each day's tasks, and helper leave.
 - **Scores:** tasks done this week, this month and all time.
-- **Household:** members and helpers with today's load; tap someone to see their tasks. **+** adds someone: invite them with a code, or add them without the app (for example a helper without a smartphone).
-- **Theme:** Sunlit from sunrise to sunset and Evening from sunset to sunrise, Indian Standard Time (calculated for the IST meridian, 82.5°E). Choosing the other theme on Household holds it until the next sunrise or sunset.
+- **Household:** members and helpers with today's load. The **+** at the bottom right adds someone: invite them with a code, or add them without the app (for example a helper without a smartphone).
+- **Theme:** Sunlit from sunrise to sunset and Evening from sunset to sunrise, Indian Standard Time (calculated for the IST meridian, 82.5°E). Choosing the other theme on Household holds it until the next sunrise or sunset, then the sun takes over again.
 
 ## Structure
 

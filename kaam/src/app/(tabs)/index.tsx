@@ -37,7 +37,6 @@ export default function Home() {
         day={dayOfMonth(now)}
         weekday={weekdayShort(now)}
         dateLabel={`Today, ${formatLongDate(now)}`}
-        onAddTask={() => router.push('/task/new')}
       />
 
       <NoticeBoard

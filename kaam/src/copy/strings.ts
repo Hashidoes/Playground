@@ -264,14 +264,11 @@ export const appearance = {
   label: 'Appearance',
   sunlit: 'Sunlit',
   evening: 'Evening',
-  auto: (sunrise: string, sunset: string) => `Sunlit from sunrise (${sunrise}) and Evening from sunset (${sunset}), Indian Standard Time.`,
-  heldUntil: (theme: string, event: 'sunrise' | 'sunset', time: string) => `${theme} until ${event} at ${time}. Then Kaam follows the sun again.`,
 };
 
 export const gaugeZero = {
   title: 'Nothing planned today',
   body: 'Enjoy the quiet, or add something for today.',
-  action: 'Add a task',
 };
 
 export const addMember = {
@@ -292,7 +289,6 @@ export const addMember = {
 };
 
 export const memberRow = {
-  open: (name: string) => `See ${name}'s tasks`,
   noApp: "Doesn't use the app",
 };
 
