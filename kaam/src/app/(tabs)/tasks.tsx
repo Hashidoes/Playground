@@ -1,18 +1,17 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
-import { Chip, EmptyState, Icon, IconButton, PillTabs, Text } from '../../components/primitives';
+import { Chip, EmptyState, Icon, IconButton, Text } from '../../components/primitives';
 import { Screen } from '../../components/Screen';
 import { TaskItem } from '../../components/TaskItem';
 import { tasks as copy } from '../../copy/strings';
-import { doneTasks, todaysTasks, upcomingTasks, useStore } from '../../data/store';
+import { todaysTasks, upcomingTasks, useStore } from '../../data/store';
 import type { Task } from '../../data/types';
 import { useTaskActions } from '../../data/useTaskActions';
 import { formatLongDate, today } from '../../lib/dates';
 import { useTheme } from '../../theme/ThemeProvider';
 import { radius, space } from '../../theme/tokens';
 
-type Tab = (typeof copy.tabs)[number];
 type Scope = 'everyone' | 'mine';
 type Group = { title: string; tasks: Task[] };
 
@@ -28,7 +27,7 @@ function groupToday(todays: Task[], upcoming: Task[]): Group[] {
   ].filter((g) => g.tasks.length);
 }
 
-/** One of the two large Everyone / Mine choices, with its icon on the right. */
+/** One of the two large Everyone / Mine choices, with its icon on the left. */
 function ScopeButton({ label, hint, icon, selected, onPress }: { label: string; hint: string; icon: 'users' | 'user'; selected: boolean; onPress: () => void }) {
   const { colors } = useTheme();
   const fg = selected ? colors.onHighlight : colors.ink;
@@ -43,20 +42,17 @@ function ScopeButton({ label, hint, icon, selected, onPress }: { label: string; 
         minHeight: 64,
         flexDirection: 'row',
         alignItems: 'center',
-        gap: space[2],
-        paddingLeft: space[4],
-        paddingRight: space[3],
+        gap: space[3],
+        paddingHorizontal: space[4],
         borderRadius: radius.md,
         backgroundColor: selected ? colors.highlight : colors.surfaceSunken,
         transform: [{ scale: pressed ? 0.98 : 1 }],
       })}
     >
+      <Icon name={icon} size={26} color={fg} />
       <View style={{ flex: 1 }}>
         <Text variant="bodyStrong" style={{ color: fg }}>{label}</Text>
         <Text variant="label" style={{ color: fg, opacity: 0.85 }} numberOfLines={2}>{hint}</Text>
-      </View>
-      <View style={{ width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: selected ? colors.accent : colors.surface }}>
-        <Icon name={icon} size={20} color={selected ? colors.onAccent : colors.ink} />
       </View>
     </Pressable>
   );
@@ -65,7 +61,6 @@ function ScopeButton({ label, hint, icon, selected, onPress }: { label: string; 
 export default function Tasks() {
   const store = useStore();
   const { toggle } = useTaskActions();
-  const [tab, setTab] = useState<Tab>('Today');
   const [scope, setScope] = useState<Scope>('everyone');
   const [person, setPerson] = useState<string>('all');
 
@@ -80,7 +75,6 @@ export default function Tasks() {
         setScope('everyone');
         setPerson(params.who);
       }
-      setTab('Today');
     }
   }
 
@@ -88,17 +82,10 @@ export default function Tasks() {
   const inScope = (t: Task) =>
     scope === 'mine' ? t.assigneeId === store.meId : !t.private && (person === 'all' || t.assigneeId === person);
 
-  let groups: Group[];
-  let empty: string;
-  if (tab === 'Today') {
-    groups = groupToday(todaysTasks(store.tasks).filter(inScope), upcomingTasks(store.tasks).filter(inScope));
-    const who = scope === 'everyone' ? store.memberById(person) : undefined;
-    empty = scope === 'mine' ? copy.emptyMine : who ? copy.emptyFor(who.name) : copy.emptyToday;
-  } else {
-    const list = doneTasks(store.tasks).filter(inScope).slice(0, 40);
-    groups = list.length ? [{ title: '', tasks: list }] : [];
-    empty = copy.emptyDone;
-  }
+  // One list: overdue, today (finished ones sink to the bottom), then coming up.
+  const groups = groupToday(todaysTasks(store.tasks).filter(inScope), upcomingTasks(store.tasks).filter(inScope));
+  const who = scope === 'everyone' ? store.memberById(person) : undefined;
+  const empty = scope === 'mine' ? copy.emptyMine : who ? copy.emptyFor(who.name) : copy.emptyToday;
 
   return (
     <Screen
@@ -126,8 +113,6 @@ export default function Tasks() {
           ))}
         </ScrollView>
       ) : null}
-
-      <PillTabs items={copy.tabs} value={tab} onChange={setTab} label="Show tasks" />
 
       {groups.length === 0 ? (
         <EmptyState message={empty} />

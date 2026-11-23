@@ -250,10 +250,6 @@ export function upcomingTasks(tasks: Task[], day: ISODate = today()): Task[] {
   return tasks.filter((t) => !t.doneAt && t.dueDate > day).sort(byTime);
 }
 
-export function doneTasks(tasks: Task[]): Task[] {
-  return tasks.filter((t) => t.doneAt).sort((a, b) => b.doneAt!.localeCompare(a.doneAt!));
-}
-
 export function tasksOnDay(tasks: Task[], day: ISODate): Task[] {
   return tasks.filter((t) => t.dueDate === day).sort(byTime);
 }

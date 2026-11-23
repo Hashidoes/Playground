@@ -58,7 +58,6 @@ export function gaugeMessage(done: number, total: number): string {
 
 export const tasks = {
   title: 'Tasks',
-  tabs: ['Today', 'Done'] as const,
   everyone: 'Everyone',
   everyoneHint: 'Shared tasks',
   mine: 'Mine',
@@ -73,7 +72,6 @@ export const tasks = {
   anyone: 'Anyone can pick this up',
   emptyToday: 'Nothing due today. Add a task, or enjoy the quiet.',
   emptyMine: 'Nothing on your list today. Add a task, or enjoy the quiet.',
-  emptyDone: 'Finished tasks show up here.',
   emptyFor: (name: string) => `Nothing for ${name} today.`,
   doneToast: (title: string) => `'${title}' is done.`,
   allDoneToast: "That's everything for today!",
