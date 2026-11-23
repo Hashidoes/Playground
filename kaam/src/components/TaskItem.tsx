@@ -95,6 +95,11 @@ export function TaskItem({
           {task.title}
         </Text>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[1], marginTop: 2 }}>
+          {task.private ? (
+            <View accessible accessibilityLabel={copy.privateLabel}>
+              <Icon name="lock" size={12} color={colors.highlight} />
+            </View>
+          ) : null}
           {task.repeat !== 'none' && !done ? <Icon name="repeat" size={12} color={meta.overdue ? colors.danger : colors.inkMuted} /> : null}
           <Text variant="label" color={meta.overdue ? 'danger' : 'inkMuted'} style={{ flexShrink: 1 }}>
             {meta.text + unassignedNote}

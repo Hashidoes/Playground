@@ -172,19 +172,24 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       color: memberColors[colorIndex % memberColors.length],
       language: state.draft.language,
     });
+    // Privacy is enforced here: screens only ever receive tasks this person may see.
+    const visibleTasks = state.tasks.filter((t) => !t.private || t.createdById === state.meId);
+    // A private task is always your own.
+    const ownIfPrivate = <T extends Pick<Task, 'private' | 'assigneeId'>>(t: T): T => (t.private ? { ...t, assigneeId: state.meId } : t);
     return {
       ...state,
+      tasks: visibleTasks,
       me,
       memberById,
       complete: (id) => dispatch({ type: 'complete', id, byId: state.meId, at: new Date().toISOString() }),
       uncomplete: (id) => dispatch({ type: 'uncomplete', id }),
       addTask: (input) => {
         const id = newId('t');
-        const task: Task = { ...input, id, seriesId: id, createdById: state.meId, doneAt: null, doneById: null };
+        const task: Task = ownIfPrivate({ ...input, id, seriesId: id, createdById: state.meId, doneAt: null, doneById: null });
         dispatch({ type: 'add', task });
         return task;
       },
-      updateTask: (task) => dispatch({ type: 'update', task }),
+      updateTask: (task) => dispatch({ type: 'update', task: ownIfPrivate(task) }),
       deleteTask: (id, series) => {
         const task = state.tasks.find((t) => t.id === id);
         if (!task) return [];
@@ -266,7 +271,8 @@ export function scoresFor(tasks: Task[], members: Member[], period: Period) {
   const from = period === 'week' ? startOfWeek(today()) : period === 'month' ? startOfMonth(today()) : '0000-00-00';
   const counts = new Map(members.map((m) => [m.id, 0]));
   for (const t of tasks) {
-    if (!t.doneAt || !t.doneById) continue;
+    // The score board is about shared housework, so private tasks never count.
+    if (!t.doneAt || !t.doneById || t.private) continue;
     if (toISODate(new Date(t.doneAt)) < from) continue;
     counts.set(t.doneById, (counts.get(t.doneById) ?? 0) + 1);
   }

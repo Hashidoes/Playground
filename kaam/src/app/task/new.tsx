@@ -2,7 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Button, Chip, ChoiceRow, IconButton, Text } from '../../components/primitives';
+import { Button, Chip, ChoiceRow, Icon, IconButton, Text } from '../../components/primitives';
 import { useToast } from '../../components/Toast';
 import { leaveWarning, newTask as copy, reminderLabels, repeatLabels, tasks as taskCopy } from '../../copy/strings';
 import { useStore } from '../../data/store';
@@ -36,6 +36,7 @@ export default function TaskSheet() {
 
   const [title, setTitle] = useState(existing?.title ?? '');
   const [assigneeId, setAssigneeId] = useState<string | null>(existing ? existing.assigneeId : store.meId);
+  const [isPrivate, setIsPrivate] = useState(existing?.private ?? false);
   const [dueDate, setDueDate] = useState(existing?.dueDate ?? (date && date >= now ? date : now));
   const [dueTime, setDueTime] = useState<Time | null>(existing?.dueTime ?? null);
   const [repeat, setRepeat] = useState<Repeat>(existing?.repeat ?? 'none');
@@ -54,12 +55,14 @@ export default function TaskSheet() {
     const name = title.trim();
     if (!name) return setError(copy.missingName);
     if (dueDate === now && dueTime && dueTime < timeFromDate(new Date()) && !existing) return setError(copy.timePassed);
-    const fields = { title: name, assigneeId, dueDate, dueTime, repeat, reminder: dueTime ? reminder : 'off', note: note.trim() || undefined };
+    // A private task is always your own.
+    const owner = isPrivate ? store.meId : assigneeId;
+    const fields = { title: name, assigneeId: owner, private: isPrivate, dueDate, dueTime, repeat, reminder: dueTime ? reminder : 'off', note: note.trim() || undefined };
     if (existing) {
       store.updateTask({ ...existing, ...fields });
     } else {
       store.addTask(fields);
-      const who = store.memberById(assigneeId);
+      const who = store.memberById(owner);
       toast({ message: who ? copy.addedFor(who.id === store.meId ? 'you' : who.name) : copy.addedForAnyone });
     }
     close();
@@ -76,7 +79,7 @@ export default function TaskSheet() {
   // For today, only offer times that are still ahead (keep a time an existing task already has).
   const nowTime = timeFromDate(new Date());
   const times = dueDate === now ? TIMES.filter((t) => t > nowTime || t === dueTime) : TIMES;
-  const assignee = store.memberById(assigneeId);
+  const assignee = store.memberById(isPrivate ? store.meId : assigneeId);
   const onLeave = assignee && store.leave.some((l) => l.memberId === assignee.id && l.from <= dueDate && l.to >= dueDate) ? assignee : undefined;
 
   return (
@@ -110,6 +113,25 @@ export default function TaskSheet() {
           ) : null}
         </View>
 
+        <Field label={copy.visibility}>
+          <ChoiceRow
+            label={copy.visibility}
+            value={isPrivate ? 'me' : 'everyone'}
+            onChange={(v) => setIsPrivate(v === 'me')}
+            options={[
+              { value: 'everyone', label: copy.visibleEveryone },
+              { value: 'me', label: copy.visibleMe },
+            ]}
+          />
+          {isPrivate ? (
+            <View style={{ flexDirection: 'row', gap: space[2], alignItems: 'flex-start' }}>
+              <Icon name="lock" size={14} color={colors.highlight} />
+              <Text variant="label" color="inkMuted" style={{ flex: 1 }}>{copy.privateHint}</Text>
+            </View>
+          ) : null}
+        </Field>
+
+        {isPrivate ? (onLeave ? <Text variant="label" color="danger">{leaveWarning(onLeave.name)}</Text> : null) : (
         <Field label={copy.who}>
           <View accessibilityRole="radiogroup" accessibilityLabel={copy.who} style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space[2] }}>
             {people.map((m) => (
@@ -119,6 +141,7 @@ export default function TaskSheet() {
           </View>
           {onLeave ? <Text variant="label" color="danger" accessibilityLiveRegion="polite">{leaveWarning(onLeave.name)}</Text> : null}
         </Field>
+        )}
 
         <Field label={copy.when}>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space[2] }}>

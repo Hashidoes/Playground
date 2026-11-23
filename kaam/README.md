@@ -26,7 +26,8 @@ The app runs on **sample data** for an example household (the Nair home). Nothin
 
 - **Onboarding:** three illustrated slides (the Figma panorama), sign in with a phone number and a 6-digit code, your name and greeting language, then start a household (and invite people with a code) or join one. Until Supabase is connected, any 6-digit code except 000000 signs you in, and code **NAI-428** joins the example household.
 - **Home:** greeting in the member's language, today's progress gauge, the notice board, and Up next.
-- **Tasks:** Today, Upcoming and Done, filtered by person. Tick to finish, with Undo. Finishing a repeating task schedules its next occurrence.
+- **Tasks:** two views, **Everyone** (shared tasks, with a person filter) and **Mine** (yours, private ones included), each with Today (overdue, today, then coming up) and Done. Tick to finish, with Undo. Finishing a repeating task schedules its next occurrence. The add button floats at the bottom right.
+- **Private tasks:** choose "Only me" under "Who can see it?". Only you see them (marked with a lock), they're always yours, and they don't count on the score board. The store filters them out for everyone else, so no screen can show them by mistake.
 - **New and edit task:** who, when, time, repeat, reminder and a note, with "Add again" suggestions. Delete with Undo.
 - **Notice board:** post a notice that shows until a chosen date.
 - **Calendar:** week strip, each day's tasks, and helper leave.

@@ -41,6 +41,11 @@ export type Task = {
   dueTime: Time | null; // null: any time
   repeat: Repeat;
   reminder: Reminder;
+  /**
+   * Private tasks are seen only by the person who made them (always their own task),
+   * and don't count on the score board.
+   */
+  private?: boolean;
   note?: string;
   doneAt: string | null; // ISO timestamp
   doneById: string | null;

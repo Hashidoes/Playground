@@ -53,6 +53,9 @@ export function buildSampleTasks(): Task[] {
     task({ title: 'Pay the electricity bill', assigneeId: ME, dueDate: y }),
     task({ title: 'Pick up Tanya from tuition', assigneeId: ME, dueDate: t, dueTime: '18:30', reminder: '15_min' }),
     task({ title: 'Plan the week’s dinners', assigneeId: ME, dueDate: t, dueTime: '20:00', repeat: 'weekly' }),
+    // Private: only Meera sees these
+    task({ title: 'Call Amma', assigneeId: ME, dueDate: t, dueTime: '20:30', private: true }),
+    task({ title: 'Book an eye check-up', assigneeId: ME, dueDate: addDays(t, 2), private: true }),
     // Today, others
     task({ title: 'Make evening tea', assigneeId: 'm-tanya', dueDate: t, dueTime: '17:30', repeat: 'daily' }),
     task({ title: 'Take out the recycling', assigneeId: 'm-sachin', dueDate: t, repeat: 'weekly', doneAt: at(t, '08:05'), doneById: 'm-sachin' }),

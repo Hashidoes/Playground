@@ -4,14 +4,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeProvider';
 import { radius, space } from '../theme/tokens';
 import { Text } from './primitives';
+import { navTop } from './Screen';
 
 type ToastInput = { message: string; action?: { label: string; onPress: () => void } };
 type ToastState = ToastInput & { id: number };
 
 const ToastContext = createContext<(t: ToastInput) => void>(() => {});
 
-/** Space reserved for the floating nav, so toasts sit just above it. */
-const NAV_CLEARANCE = 92;
+/** Toasts sit above the floating nav and the floating add button, so they never cover either. */
+const FAB_CLEARANCE = 16 + 56 + 12;
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toast, setToast] = useState<ToastState | null>(null);
@@ -32,7 +33,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <ToastContext.Provider value={show}>
       {children}
       {toast ? (
-        <View pointerEvents="box-none" style={{ position: 'absolute', left: space[4], right: space[4], bottom: insets.bottom + NAV_CLEARANCE }}>
+        <View pointerEvents="box-none" style={{ position: 'absolute', left: space[4], right: space[4], bottom: navTop(insets.bottom) + FAB_CLEARANCE }}>
           <View
             accessibilityLiveRegion="polite"
             style={{
