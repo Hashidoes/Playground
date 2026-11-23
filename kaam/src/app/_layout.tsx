@@ -4,20 +4,28 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { ToastProvider } from '../components/Toast';
-import { StoreProvider } from '../data/store';
+import { StoreProvider, useStore } from '../data/store';
 import { ThemeProvider, useTheme } from '../theme/ThemeProvider';
 
 SplashScreen.preventAutoHideAsync();
 
 function RootStack() {
   const { colors, isEvening } = useTheme();
+  const { onboarded } = useStore();
   return (
     <>
       <StatusBar style={isEvening ? 'light' : 'dark'} />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.surface } }}>
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="task/new" options={{ presentation: 'modal' }} />
-        <Stack.Screen name="notice/new" options={{ presentation: 'modal' }} />
+        {/* Signed in and in a household: the app itself. */}
+        <Stack.Protected guard={onboarded} redirectTo="/welcome">
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="task/new" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="notice/new" options={{ presentation: 'modal' }} />
+        </Stack.Protected>
+        {/* Everyone else: welcome, sign in, profile, household. */}
+        <Stack.Protected guard={!onboarded} redirectTo="/">
+          <Stack.Screen name="(onboarding)" />
+        </Stack.Protected>
       </Stack>
     </>
   );

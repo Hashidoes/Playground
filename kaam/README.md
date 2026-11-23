@@ -24,6 +24,7 @@ npm run lint
 
 The app runs on **sample data** for an example household (the Nair home). Nothing is saved yet: reloading the app resets it. Connecting Supabase is the next step.
 
+- **Onboarding:** three illustrated slides (the Figma panorama), sign in with a phone number and a 6-digit code, your name and greeting language, then start a household (and invite people with a code) or join one. Until Supabase is connected, any 6-digit code except 000000 signs you in, and code **NAI-428** joins the example household.
 - **Home:** greeting in the member's language, today's progress gauge, the notice board, and Up next.
 - **Tasks:** Today, Upcoming and Done, filtered by person. Tick to finish, with Undo. Finishing a repeating task schedules its next occurrence.
 - **New and edit task:** who, when, time, repeat, reminder and a note, with "Add again" suggestions. Delete with Undo.
@@ -37,7 +38,8 @@ The app runs on **sample data** for an example household (the Nair home). Nothin
 ```
 src/
   app/                 Routes (Expo Router)
-    _layout.tsx        Fonts, splash, providers, root stack
+    _layout.tsx        Fonts, splash, providers, and the guard that sends new people to onboarding
+    (onboarding)/      Welcome slides, sign in, code, profile, household setup, invite, join
     (tabs)/            Home, Tasks, Calendar, Scores, Household
     task/new.tsx       New / edit task sheet (?id= to edit, ?date= to prefill)
     notice/new.tsx     Share a notice sheet
@@ -54,6 +56,7 @@ src/
 
 - Supabase: accounts, households, invites, live sync between phones, saving data.
 - Push notifications and reminders.
-- Onboarding, sign-in, profile setup, menu and settings screens.
+- Real text messages for sign-in, and invites by phone number (both need Supabase).
+- A profile photo, and the menu and settings screens (Sign out is on Household for now).
 - Helper pages (leave and notes), urgent alerts.
 - A native time and date picker (the task sheet offers preset times and the next three weeks for now).

@@ -20,6 +20,8 @@ export type ColorTokens = {
   surface: string;
   surfaceRaised: string;
   surfaceSunken: string;
+  /** Text field background (the pale amber inputs in the Figma sign-up screens). */
+  field: string;
   ink: string;
   inkMuted: string;
   highlight: string;
@@ -45,6 +47,7 @@ export const sunlit: ColorTokens = {
   surface: amber[50],
   surfaceRaised: '#CDDEE5',
   surfaceSunken: green[100],
+  field: amber[100],
   ink: blue[800],
   inkMuted: '#3F5B75',
   highlight: '#045DD0',
@@ -70,6 +73,7 @@ export const evening: ColorTokens = {
   surface: '#0C305F',
   surfaceRaised: blue[800],
   surfaceSunken: '#3D597B',
+  field: blue[800],
   ink: amber[50],
   inkMuted: blue[200],
   highlight: amber[500],
@@ -98,7 +102,7 @@ export const radius = { sm: 8, md: 24, lg: 36, xl: 48, pill: 999 } as const;
  * Colours given to household members, in the order people join. Each keeps cream
  * initials above 4.5:1 and stays visible on both the Sunlit and Evening cards.
  */
-export const memberColors = [amber[900], green[600], amber[700], '#045DD0', green[800], '#B54708'] as const;
+export const memberColors = [amber[900], green[600], amber[700], '#045DD0', green[800], '#8E3B74'] as const;
 
 export const font = {
   light: 'Inter_300Light',

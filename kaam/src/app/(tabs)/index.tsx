@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { View } from 'react-native';
 import { GreetingHeader, NoticeBoard, ProgressGauge } from '../../components/home';
-import { EmptyState, SectionHeader } from '../../components/primitives';
+import { Button, EmptyState, SectionHeader } from '../../components/primitives';
 import { Screen } from '../../components/Screen';
 import { TaskItem } from '../../components/TaskItem';
 import { gaugeMessage, greetings, home as copy } from '../../copy/strings';
@@ -47,7 +47,13 @@ export default function Home() {
 
       <View style={{ gap: 12 }}>
         <SectionHeader title={copy.upNext} action={copy.seeAll} onAction={() => router.navigate('/tasks')} />
-        {upNext.length === 0 ? (
+        {tasks.length === 0 ? (
+          // A brand-new household: point to the first step instead of "all caught up".
+          <View style={{ gap: 12 }}>
+            <EmptyState message={copy.firstTaskBody} />
+            <Button label={copy.firstTask} icon="plus" onPress={() => router.push('/task/new')} />
+          </View>
+        ) : upNext.length === 0 ? (
           <EmptyState message={copy.caughtUp} />
         ) : (
           <View style={{ gap: 8 }}>

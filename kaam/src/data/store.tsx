@@ -1,7 +1,8 @@
 import { createContext, useCallback, useContext, useMemo, useReducer, type ReactNode } from 'react';
 import { nextOccurrence, startOfMonth, startOfWeek, today, toISODate } from '../lib/dates';
 import { ME, buildSampleLeave, buildSampleNotices, buildSampleTasks, sampleHousehold, sampleMembers, sampleSuggestions } from './sample';
-import type { Household, ISODate, Leave, Member, Notice, Task } from './types';
+import { memberColors } from '../theme/tokens';
+import type { Household, HouseholdKind, ISODate, Language, Leave, Member, Notice, Task } from './types';
 
 type State = {
   household: Household;
@@ -11,6 +12,10 @@ type State = {
   notices: Notice[];
   leave: Leave[];
   suggestions: string[];
+  /** False until the person has signed in and joined or created a household. */
+  onboarded: boolean;
+  /** What onboarding has collected so far. */
+  draft: { phone: string; name: string; language: Language };
 };
 
 type Action =
@@ -21,7 +26,36 @@ type Action =
   | { type: 'delete'; id: string; series: boolean }
   | { type: 'restore'; tasks: Task[] }
   | { type: 'pickUp'; id: string; byId: string }
-  | { type: 'addNotice'; notice: Notice };
+  | { type: 'addNotice'; notice: Notice }
+  | { type: 'setPhone'; phone: string }
+  | { type: 'setProfile'; name: string; language: Language }
+  | { type: 'createHousehold'; household: Household; me: Member }
+  | { type: 'joinSample'; me: Member }
+  | { type: 'finishOnboarding' }
+  | { type: 'reset' };
+
+/** Invite code of the example household while the app runs on sample data. */
+export const SAMPLE_INVITE_CODE = sampleHousehold.inviteCode;
+
+function initialState(): State {
+  return {
+    household: sampleHousehold,
+    members: sampleMembers,
+    meId: ME,
+    tasks: buildSampleTasks(),
+    notices: buildSampleNotices(),
+    leave: buildSampleLeave(),
+    suggestions: sampleSuggestions,
+    onboarded: false,
+    draft: { phone: '', name: '', language: 'en' },
+  };
+}
+
+function makeInviteCode(): string {
+  const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  const pick = () => letters[Math.floor(Math.random() * letters.length)];
+  return `${pick()}${pick()}${pick()}-${Math.floor(100 + Math.random() * 900)}`;
+}
 
 let counter = 0;
 export function newId(prefix: string): string {
@@ -79,6 +113,21 @@ function reducer(state: State, action: Action): State {
       return { ...state, tasks: state.tasks.map((t) => (t.id === action.id ? { ...t, assigneeId: action.byId } : t)) };
     case 'addNotice':
       return { ...state, notices: [action.notice, ...state.notices] };
+    case 'setPhone':
+      return { ...state, draft: { ...state.draft, phone: action.phone } };
+    case 'setProfile':
+      return { ...state, draft: { ...state.draft, name: action.name, language: action.language } };
+    case 'createHousehold':
+      // A brand-new household starts empty, with only you in it.
+      return { ...state, household: action.household, members: [action.me], meId: action.me.id, tasks: [], notices: [], leave: [] };
+    case 'joinSample': {
+      const fresh = initialState();
+      return { ...state, household: fresh.household, members: [...fresh.members, action.me], meId: action.me.id, tasks: fresh.tasks, notices: fresh.notices, leave: fresh.leave };
+    }
+    case 'finishOnboarding':
+      return { ...state, onboarded: true };
+    case 'reset':
+      return initialState();
   }
 }
 
@@ -93,25 +142,31 @@ type StoreValue = State & {
   restoreTasks: (tasks: Task[]) => void;
   pickUp: (id: string) => void;
   addNotice: (message: string, showUntil: ISODate | null) => void;
+  setPhone: (phone: string) => void;
+  setProfile: (name: string, language: Language) => void;
+  createHousehold: (name: string, kind: HouseholdKind) => void;
+  /** Returns false when the code doesn't match a household. */
+  joinHousehold: (code: string) => boolean;
+  finishOnboarding: () => void;
+  signOut: () => void;
 };
 
 const StoreContext = createContext<StoreValue | null>(null);
 
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, undefined, (): State => ({
-    household: sampleHousehold,
-    members: sampleMembers,
-    meId: ME,
-    tasks: buildSampleTasks(),
-    notices: buildSampleNotices(),
-    leave: buildSampleLeave(),
-    suggestions: sampleSuggestions,
-  }));
+  const [state, dispatch] = useReducer(reducer, undefined, initialState);
 
   const memberById = useCallback((id: string | null) => state.members.find((m) => m.id === id), [state.members]);
 
   const value = useMemo<StoreValue>(() => {
     const me = state.members.find((m) => m.id === state.meId)!;
+    const newMe = (role: Member['role'], colorIndex: number): Member => ({
+      id: newId('m'),
+      name: state.draft.name.trim() || 'You',
+      role,
+      color: memberColors[colorIndex % memberColors.length],
+      language: state.draft.language,
+    });
     return {
       ...state,
       me,
@@ -136,6 +191,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       pickUp: (id) => dispatch({ type: 'pickUp', id, byId: state.meId }),
       addNotice: (message, showUntil) =>
         dispatch({ type: 'addNotice', notice: { id: newId('n'), message, authorId: state.meId, createdAt: new Date().toISOString(), showUntil } }),
+      setPhone: (phone) => dispatch({ type: 'setPhone', phone }),
+      setProfile: (name, language) => dispatch({ type: 'setProfile', name, language }),
+      createHousehold: (name, kind) =>
+        dispatch({ type: 'createHousehold', household: { id: newId('h'), name, kind, inviteCode: makeInviteCode() }, me: newMe('admin', 0) }),
+      joinHousehold: (code) => {
+        if (code.trim().toUpperCase() !== SAMPLE_INVITE_CODE) return false;
+        dispatch({ type: 'joinSample', me: newMe('member', 5) });
+        return true;
+      },
+      finishOnboarding: () => dispatch({ type: 'finishOnboarding' }),
+      signOut: () => dispatch({ type: 'reset' }),
     };
   }, [state, memberById]);
 

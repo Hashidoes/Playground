@@ -1,7 +1,8 @@
+import { useState } from 'react';
 import { View } from 'react-native';
-import { Avatar, Card, ChoiceRow, Text } from '../../components/primitives';
+import { Avatar, Button, Card, ChoiceRow, Text } from '../../components/primitives';
 import { Screen } from '../../components/Screen';
-import { household as copy } from '../../copy/strings';
+import { account, household as copy } from '../../copy/strings';
 import { todaysTasks, useStore } from '../../data/store';
 import type { Member } from '../../data/types';
 import { today } from '../../lib/dates';
@@ -20,6 +21,7 @@ export default function Household() {
   const now = today();
   const todays = todaysTasks(store.tasks);
 
+  const [confirmSignOut, setConfirmSignOut] = useState(false);
   const onLeaveToday = store.leave.filter((l) => l.from <= now && l.to >= now);
 
   const row = (m: Member) => {
@@ -78,6 +80,18 @@ export default function Household() {
         <Text variant="caption" color="inkMuted" accessibilityRole="header">APPEARANCE</Text>
         <ChoiceRow label="Appearance" value={appearance} onChange={setAppearance} options={APPEARANCE} />
       </View>
+
+      {confirmSignOut ? (
+        <View style={{ gap: space[3], padding: space[4], borderRadius: radius.md, borderWidth: 2, borderColor: colors.line }}>
+          <Text variant="bodyStrong">{account.signOutConfirm}</Text>
+          <View style={{ flexDirection: 'row', gap: space[3] }}>
+            <Button label={account.signOut} variant="highlight" onPress={store.signOut} style={{ flex: 1 }} />
+            <Button label={account.cancel} variant="ghost" onPress={() => setConfirmSignOut(false)} style={{ flex: 1 }} />
+          </View>
+        </View>
+      ) : (
+        <Button label={account.signOut} variant="ghost" onPress={() => setConfirmSignOut(true)} />
+      )}
     </Screen>
   );
 }

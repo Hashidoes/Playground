@@ -43,6 +43,8 @@ export const home = {
   upNext: 'Up next',
   seeAll: 'See all',
   caughtUp: "You're all caught up.",
+  firstTaskBody: 'Nothing on the list yet. Add the first thing that needs doing at home.',
+  firstTask: 'Add your first task',
 };
 
 /** Gauge message for the viewer's own tasks today. */
@@ -167,4 +169,88 @@ export const system = {
   offline: "You're offline. Changes will sync when you're back.",
   couldntSave: "Couldn't save that. Check your connection and try again.",
   retry: 'Try again',
+};
+
+export const onboarding = {
+  tagline: 'Housework, shared.',
+  slides: [
+    { title: 'One list for the whole house', body: "See what needs doing, who's on it and what's already done." },
+    { title: 'Hand it off in a tap', body: 'Give a task to anyone at home, set it to repeat, and Kaam reminds them.' },
+    { title: 'See the effort', body: "Every finished task counts. Watch your household's week add up." },
+  ],
+  next: 'Next',
+  skip: 'Skip',
+  getStarted: 'Get started',
+  back: 'Back',
+  continue: 'Continue',
+  slideLabel: (i: number, n: number) => `Slide ${i} of ${n}`,
+};
+
+export const signIn = {
+  title: "Let's get you in",
+  body: "Enter your phone number. We'll text you a 6-digit code.",
+  phoneLabel: 'Phone number',
+  countryCode: '+91',
+  sendCode: 'Send code',
+  invalidNumber: 'Enter a 10-digit mobile number.',
+  codeTitle: 'Enter the code',
+  codeBody: (phone: string) => `Sent to ${phone}.`,
+  changeNumber: 'Change number',
+  resendIn: (s: number) => `Resend code in 0:${String(s).padStart(2, '0')}`,
+  resend: 'Resend code',
+  resent: 'New code sent',
+  wrongCode: "That code doesn't match. Check the message and try again.",
+  codeLabel: '6-digit code',
+  verify: 'Continue',
+  /** Shown only while the app runs on sample data, before Supabase is connected. */
+  sampleHint: 'Sample mode: any 6 digits work, except 000000.',
+};
+
+export const profile = {
+  title: 'What should we call you?',
+  nameLabel: 'Your name',
+  namePlaceholder: 'e.g. Meera',
+  emptyName: 'Add your name so others know who you are.',
+  languageLabel: 'Greet me in',
+  continue: 'Continue',
+};
+
+export const setup = {
+  title: 'Set up your household',
+  startTitle: 'Start a new household',
+  startBody: 'Make a shared list and invite the people you live with.',
+  joinTitle: 'Join a household',
+  joinBody: 'Got an invite code? Enter it here.',
+  nameTitle: 'Name your household',
+  nameLabel: 'Household name',
+  namePlaceholder: 'e.g. The Nair home, Flat 4B',
+  emptyName: 'Give your household a name.',
+  kindLabel: 'Who lives here?',
+  kinds: { family: 'Family', roommates: 'Roommates' },
+  create: 'Create household',
+  inviteTitle: 'Invite your household',
+  inviteBody: 'Share this code with the people you live with. It works for 7 days.',
+  inviteAs: 'Invite as',
+  memberRole: 'Can add, assign and finish any task.',
+  helperRole: 'Sees only the tasks given to them, and can mark leave.',
+  share: 'Share invite',
+  copy: 'Copy code',
+  copied: 'Code copied',
+  shareMessage: (household: string, code: string) => `Join ${household} on Kaam so we can share the housework. Use code ${code} when you sign up.`,
+  later: 'Do this later',
+  done: 'Done',
+  joinTitleScreen: 'Enter your invite code',
+  joinPlaceholder: 'ABC-123',
+  joinButton: 'Join household',
+  codeNotFound: "We couldn't find that code. Check it with the person who sent it, or ask for a new one.",
+  joined: (household: string) => `You've joined ${household}`,
+  joinedBody: 'Your tasks, the notice board and the score board are ready.',
+  goHome: 'Go to Home',
+  sampleJoinHint: 'Sample mode: use code NAI-428 to join the example household.',
+};
+
+export const account = {
+  signOut: 'Sign out',
+  signOutConfirm: 'Sign out of Kaam?',
+  cancel: 'Cancel',
 };
