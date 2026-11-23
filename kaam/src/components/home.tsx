@@ -1,10 +1,10 @@
 import { Pressable, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { home as copy } from '../copy/strings';
+import { gaugeZero, home as copy } from '../copy/strings';
 import type { Language, Member } from '../data/types';
 import { useTheme } from '../theme/ThemeProvider';
 import { radius, space } from '../theme/tokens';
-import { Avatar, Icon, IconButton, Text } from './primitives';
+import { Avatar, Button, Icon, IconButton, Text } from './primitives';
 
 // ---------- GreetingHeader ----------
 
@@ -13,13 +13,11 @@ export function GreetingHeader({
   greeting,
   english,
   language,
-  onMenu,
 }: {
   me: Member;
   greeting: string;
   english: string;
   language: Language;
-  onMenu?: () => void;
 }) {
   const lines = greeting.split('\n');
   return (
@@ -27,7 +25,6 @@ export function GreetingHeader({
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
         <Avatar name={me.name} color={me.color} />
         <Text variant="bodyStrong" style={{ flex: 1 }}>{copy.hi(me.name)}</Text>
-        <IconButton icon="menu" label={copy.openMenu} variant="ghost" onPress={onMenu} />
       </View>
       <View accessibilityRole="header" accessibilityLanguage={language} accessibilityLabel={language === 'en' ? greeting : `${greeting.replace('\n', ' ')}. ${english}`}>
         {lines.map((l, i) => (
@@ -67,14 +64,18 @@ export function ProgressGauge({
   message,
   day,
   weekday,
-  onViewDay,
+  dateLabel,
+  onAddTask,
 }: {
   percent: number;
   hasTasks: boolean;
   message: string;
   day: string;
   weekday: string;
-  onViewDay?: () => void;
+  /** Spoken date, e.g. "Monday, 23 November". */
+  dateLabel: string;
+  /** Shown in the zero state, when nothing is planned for today. */
+  onAddTask?: () => void;
 }) {
   const { colors } = useTheme();
   const v = Math.max(0, Math.min(100, percent));
@@ -83,30 +84,46 @@ export function ProgressGauge({
   return (
     <View style={{ backgroundColor: colors.surfaceRaised, borderRadius: radius.xl, paddingTop: space[5], paddingHorizontal: space[6], paddingBottom: space[4] }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: space[4] }}>
-        <Text variant="caption" style={{ flex: 1, maxWidth: 170 }} accessibilityLiveRegion="polite">{message}</Text>
-        <DateBadge day={day} weekday={weekday} onPress={onViewDay} />
+        {/* In the zero state the message moves into the dial. */}
+        <Text variant="caption" style={{ flex: 1, maxWidth: 170 }} accessibilityLiveRegion="polite">{hasTasks ? message : ''}</Text>
+        <DateBadge day={day} weekday={weekday} label={dateLabel} />
       </View>
       <View
-        accessible
-        accessibilityRole="progressbar"
-        accessibilityLabel={copy.gaugeLabel(v)}
-        accessibilityValue={{ min: 0, max: 100, now: v }}
+        accessible={hasTasks}
+        accessibilityRole={hasTasks ? 'progressbar' : undefined}
+        accessibilityLabel={hasTasks ? copy.gaugeLabel(v) : undefined}
+        aria-valuemin={hasTasks ? 0 : undefined}
+        aria-valuemax={hasTasks ? 100 : undefined}
+        aria-valuenow={hasTasks ? v : undefined}
         style={{ alignSelf: 'center', width: '100%', maxWidth: 260, aspectRatio: 240 / 200, marginTop: space[2] }}
       >
         <Svg width="100%" height="100%" viewBox="0 0 240 200">
-          <Path d={arc(120, 120, 96, start, start + sweep)} stroke={colors.track} strokeWidth={20} strokeLinecap="round" fill="none" />
+          <Path
+            d={arc(120, 120, 96, start, start + sweep)}
+            stroke={colors.track}
+            strokeWidth={hasTasks ? 20 : 10}
+            strokeLinecap="round"
+            // Zero state: a dotted outline of the dial, so it reads as "nothing yet", not "0% done".
+            strokeDasharray={hasTasks ? undefined : '0.1 18'}
+            fill="none"
+          />
           {hasTasks && v > 0 ? (
             <Path d={arc(120, 120, 96, start, start + (sweep * Math.min(v, 99.9)) / 100)} stroke={colors.accent} strokeWidth={20} strokeLinecap="round" fill="none" />
           ) : null}
         </Svg>
-        <View style={{ position: 'absolute', left: 0, right: 0, top: '38%', alignItems: 'center' }}>
-          {hasTasks ? (
-            <>
-              <Text variant="stat" style={{ fontVariant: ['tabular-nums'] }}>{`${v}%`}</Text>
-              <Text variant="label" color="inkMuted">{copy.gaugeCaption}</Text>
-            </>
-          ) : null}
-        </View>
+        {hasTasks ? (
+          <View style={{ position: 'absolute', left: 0, right: 0, top: '38%', alignItems: 'center' }}>
+            <Text variant="stat" style={{ fontVariant: ['tabular-nums'] }}>{`${v}%`}</Text>
+            <Text variant="label" color="inkMuted">{copy.gaugeCaption}</Text>
+          </View>
+        ) : (
+          <View style={{ position: 'absolute', left: space[8], right: space[8], top: '28%', alignItems: 'center', gap: space[2] }}>
+            <Icon name="sun" size={28} color={colors.accent} />
+            <Text variant="bodyStrong" style={{ textAlign: 'center' }} accessibilityRole="header">{gaugeZero.title}</Text>
+            <Text variant="label" color="inkMuted" style={{ textAlign: 'center' }}>{gaugeZero.body}</Text>
+            {onAddTask ? <Button label={gaugeZero.action} size="sm" icon="plus" onPress={onAddTask} style={{ marginTop: space[1] }} /> : null}
+          </View>
+        )}
       </View>
     </View>
   );
@@ -114,23 +131,18 @@ export function ProgressGauge({
 
 // ---------- DateBadge ----------
 
-export function DateBadge({ day, weekday, onPress }: { day: string; weekday: string; onPress?: () => void }) {
+/** Today's date as a small badge. Display only. */
+export function DateBadge({ day, weekday, label }: { day: string; weekday: string; label: string }) {
   const { colors } = useTheme();
   return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={`${copy.viewDay}, ${weekday} ${day}`}
-      style={{ flexDirection: 'row', height: 54, borderRadius: radius.md, overflow: 'hidden' }}
+    <View
+      accessible
+      accessibilityLabel={label}
+      style={{ width: 54, height: 54, borderRadius: radius.md, backgroundColor: colors.highlight, alignItems: 'center', justifyContent: 'center' }}
     >
-      <View style={{ width: 54, backgroundColor: colors.highlight, alignItems: 'center', justifyContent: 'center' }}>
-        <Text variant="label" color="onHighlight">{day}</Text>
-        <Text variant="label" color="onHighlight">{weekday}</Text>
-      </View>
-      <View style={{ width: 78, paddingHorizontal: space[4], backgroundColor: colors.surface, justifyContent: 'center' }}>
-        <Text variant="label">{copy.viewDay.replace(' ', '\n')}</Text>
-      </View>
-    </Pressable>
+      <Text variant="bodyStrong" color="onHighlight" style={{ lineHeight: 20 }}>{day}</Text>
+      <Text variant="label" color="onHighlight">{weekday}</Text>
+    </View>
   );
 }
 
@@ -193,11 +205,24 @@ export function BottomNav({ items, activeKey, onSelect, bottomInset }: { items: 
               key={it.key}
               onPress={() => onSelect(it.key)}
               accessibilityRole="tab"
-              accessibilityState={{ selected: on }}
+              aria-selected={on}
               accessibilityLabel={it.label}
-              style={{ width: on ? 58 : 44, height: 32, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', backgroundColor: on ? colors.accentStrong : 'transparent' }}
+              hitSlop={{ top: 12, bottom: 12 }}
+              style={{
+                flexDirection: 'row',
+                gap: space[2],
+                minWidth: 44,
+                height: 36,
+                paddingHorizontal: on ? space[3] : 0,
+                borderRadius: radius.md,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: on ? colors.accentStrong : 'transparent',
+              }}
             >
-              <Icon name={it.icon} size={24} color={on ? colors.onAccentStrong : colors.onAccent} />
+              <Icon name={it.icon} size={22} color={on ? colors.onAccentStrong : colors.onAccent} />
+              {/* The active tab names itself, so the icons are easy to learn. */}
+              {on ? <Text variant="caption" color="onAccentStrong">{it.label}</Text> : null}
             </Pressable>
           );
         })}

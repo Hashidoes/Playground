@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { Chip, EmptyState, IconButton, PillTabs, Text } from '../../components/primitives';
@@ -41,6 +41,16 @@ export default function Tasks() {
   const { toggle } = useTaskActions();
   const [tab, setTab] = useState<Tab>('Today');
   const [who, setWho] = useState<string>('everyone');
+  // Opened from a person on the Household screen: show their tasks for today.
+  const params = useLocalSearchParams<{ who?: string }>();
+  const [appliedWho, setAppliedWho] = useState<string | undefined>(undefined);
+  if (params.who !== appliedWho) {
+    setAppliedWho(params.who);
+    if (params.who) {
+      setWho(params.who === store.meId ? 'mine' : params.who);
+      setTab('Today');
+    }
+  }
 
   const filter = (t: Task) => (who === 'everyone' ? true : who === 'mine' ? t.assigneeId === store.meId : t.assigneeId === who);
   const others = store.members.filter((m) => m.id !== store.meId);
@@ -67,7 +77,7 @@ export default function Tasks() {
     >
       <PillTabs items={copy.tabs} value={tab} onChange={setTab} label="Show tasks" />
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: space[2] }} style={{ marginHorizontal: -space[4] }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: space[2] }} style={{ marginHorizontal: -space[4] }} accessibilityRole="radiogroup" accessibilityLabel="Show tasks for">
         <View style={{ width: space[2] }} />
         <Chip label={copy.everyone} selected={who === 'everyone'} onPress={() => setWho('everyone')} />
         <Chip label={copy.mine} selected={who === 'mine'} onPress={() => setWho('mine')} />

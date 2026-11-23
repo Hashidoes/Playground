@@ -8,7 +8,7 @@ import { iconPaths, type IconName } from './iconPaths';
 
 export function Icon({ name, size = 24, color }: { name: IconName; size?: number; color: string }) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 256 256" fill={color} accessibilityElementsHidden importantForAccessibility="no">
+    <Svg width={size} height={size} viewBox="0 0 256 256" fill={color} aria-hidden>
       {iconPaths[name].map((d, i) => (
         <Path key={i} d={d} />
       ))}
@@ -64,7 +64,7 @@ export function Button({
       disabled={disabled}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
-      accessibilityState={{ disabled }}
+      aria-disabled={disabled}
       style={({ pressed }) => [
         {
           height: h,
@@ -163,9 +163,10 @@ export function PillTabs<T extends string>({
           <Pressable
             key={it}
             accessibilityRole="tab"
-            accessibilityState={{ selected: on }}
+            aria-selected={on}
             onPress={() => onChange(it)}
-            style={{ height: 36, minWidth: 88, paddingHorizontal: space[4], borderRadius: radius.pill, backgroundColor: on ? colors.highlight : colors.surfaceSunken, alignItems: 'center', justifyContent: 'center' }}
+            hitSlop={4}
+            style={{ height: 40, minWidth: 88, paddingHorizontal: space[4], borderRadius: radius.pill, backgroundColor: on ? colors.highlight : colors.surfaceSunken, alignItems: 'center', justifyContent: 'center' }}
           >
             <RNText style={[type.bodySemibold, { fontFamily: type.bodyStrong.fontFamily, color: on ? colors.onHighlight : colors.ink }]}>{it}</RNText>
           </Pressable>
@@ -180,10 +181,12 @@ export function Chip({ label, selected, onPress, icon }: { label: string; select
   return (
     <Pressable
       onPress={onPress}
-      accessibilityRole="button"
-      accessibilityState={{ selected }}
+      // A chip with a selected state is one choice in a group, so it is announced as a radio button.
+      accessibilityRole={selected === undefined ? 'button' : 'radio'}
+      aria-checked={selected}
+      hitSlop={4}
       style={{
-        height: 36,
+        height: 40,
         paddingHorizontal: space[4],
         borderRadius: radius.pill,
         backgroundColor: selected ? colors.highlight : colors.surfaceSunken,

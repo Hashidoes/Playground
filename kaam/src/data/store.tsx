@@ -32,6 +32,7 @@ type Action =
   | { type: 'createHousehold'; household: Household; me: Member }
   | { type: 'joinSample'; me: Member }
   | { type: 'finishOnboarding' }
+  | { type: 'addMember'; member: Member }
   | { type: 'reset' };
 
 /** Invite code of the example household while the app runs on sample data. */
@@ -126,6 +127,8 @@ function reducer(state: State, action: Action): State {
     }
     case 'finishOnboarding':
       return { ...state, onboarded: true };
+    case 'addMember':
+      return { ...state, members: [...state.members, action.member] };
     case 'reset':
       return initialState();
   }
@@ -148,6 +151,8 @@ type StoreValue = State & {
   /** Returns false when the code doesn't match a household. */
   joinHousehold: (code: string) => boolean;
   finishOnboarding: () => void;
+  /** Adds someone who won't use the app; tasks can still be given to them. */
+  addMember: (name: string, role: Member['role']) => Member;
   signOut: () => void;
 };
 
@@ -201,6 +206,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         return true;
       },
       finishOnboarding: () => dispatch({ type: 'finishOnboarding' }),
+      addMember: (name, role) => {
+        // The first unused colour, so new people never share one with someone already here.
+        const used = new Set(state.members.map((m) => m.color));
+        const color = memberColors.find((c) => !used.has(c)) ?? memberColors[state.members.length % memberColors.length];
+        const member: Member = { id: newId('m'), name, role, color, language: 'en', usesApp: false };
+        dispatch({ type: 'addMember', member });
+        return member;
+      },
       signOut: () => dispatch({ type: 'reset' }),
     };
   }, [state, memberById]);

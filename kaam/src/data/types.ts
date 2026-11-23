@@ -25,6 +25,8 @@ export type Member = {
   color: string;
   language: Language;
   avatarUrl?: string;
+  /** False for someone added without the app (for example a helper without a smartphone). */
+  usesApp?: boolean;
 };
 
 /** One occurrence of a task. A repeating task creates its next occurrence when this one is done. */

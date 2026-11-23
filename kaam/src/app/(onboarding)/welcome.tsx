@@ -76,7 +76,7 @@ function Slides() {
       </View>
 
       <View style={{ paddingHorizontal: space[4], paddingTop: space[2], paddingBottom: insets.bottom + space[4], gap: space[4] }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'center', gap: space[2] }} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+        <View style={{ flexDirection: 'row', justifyContent: 'center', gap: space[2] }} aria-hidden>
           {copy.slides.map((s, i) => (
             <View key={s.title} style={{ width: i === index ? 24 : 8, height: 8, borderRadius: 4, backgroundColor: i === index ? colors.highlight : colors.track }} />
           ))}

@@ -4,7 +4,7 @@ import { KeyboardAvoidingView, Platform, ScrollView, TextInput, View } from 'rea
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Chip, ChoiceRow, IconButton, Text } from '../../components/primitives';
 import { useToast } from '../../components/Toast';
-import { newTask as copy, reminderLabels, repeatLabels, tasks as taskCopy } from '../../copy/strings';
+import { leaveWarning, newTask as copy, reminderLabels, repeatLabels, tasks as taskCopy } from '../../copy/strings';
 import { useStore } from '../../data/store';
 import type { Reminder, Repeat, Time } from '../../data/types';
 import { addDays, formatShortDate, formatTime, timeFromDate, today } from '../../lib/dates';
@@ -73,6 +73,11 @@ export default function TaskSheet() {
   }
 
   const people = [store.me, ...store.members.filter((m) => m.id !== store.meId)];
+  // For today, only offer times that are still ahead (keep a time an existing task already has).
+  const nowTime = timeFromDate(new Date());
+  const times = dueDate === now ? TIMES.filter((t) => t > nowTime || t === dueTime) : TIMES;
+  const assignee = store.memberById(assigneeId);
+  const onLeave = assignee && store.leave.some((l) => l.memberId === assignee.id && l.from <= dueDate && l.to >= dueDate) ? assignee : undefined;
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: colors.surface }}>
@@ -106,19 +111,28 @@ export default function TaskSheet() {
         </View>
 
         <Field label={copy.who}>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space[2] }}>
+          <View accessibilityRole="radiogroup" accessibilityLabel={copy.who} style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space[2] }}>
             {people.map((m) => (
               <Chip key={m.id} label={m.id === store.meId ? copy.me : m.name} selected={assigneeId === m.id} onPress={() => setAssigneeId(m.id)} />
             ))}
             <Chip label={copy.anyone} selected={assigneeId === null} onPress={() => setAssigneeId(null)} />
           </View>
+          {onLeave ? <Text variant="label" color="danger" accessibilityLiveRegion="polite">{leaveWarning(onLeave.name)}</Text> : null}
         </Field>
 
         <Field label={copy.when}>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space[2] }}>
             <Chip label={copy.today} selected={!pickingDate && dueDate === now} onPress={() => { setDueDate(now); setPickingDate(false); }} />
             <Chip label={copy.tomorrow} selected={!pickingDate && dueDate === addDays(now, 1)} onPress={() => { setDueDate(addDays(now, 1)); setPickingDate(false); }} />
-            <Chip label={pickingDate ? formatShortDate(dueDate) : copy.pickDate} selected={pickingDate} onPress={() => setPickingDate(true)} />
+            <Chip
+              label={pickingDate ? formatShortDate(dueDate) : copy.pickDate}
+              selected={pickingDate}
+              onPress={() => {
+                setPickingDate(true);
+                // Move off today/tomorrow so the chip and the selected date agree.
+                if (dueDate <= addDays(now, 1)) setDueDate(addDays(now, 2));
+              }}
+            />
           </View>
           {pickingDate ? (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: space[2] }}>
@@ -132,7 +146,7 @@ export default function TaskSheet() {
         <Field label={copy.time}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: space[2] }}>
             <Chip label={copy.anyTime} selected={dueTime === null} onPress={() => setDueTime(null)} />
-            {TIMES.map((t) => <Chip key={t} label={formatTime(t)} selected={dueTime === t} onPress={() => setDueTime(t)} />)}
+            {times.map((t) => <Chip key={t} label={formatTime(t)} selected={dueTime === t} onPress={() => setDueTime(t)} />)}
           </ScrollView>
         </Field>
 

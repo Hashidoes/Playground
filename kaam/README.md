@@ -31,7 +31,8 @@ The app runs on **sample data** for an example household (the Nair home). Nothin
 - **Notice board:** post a notice that shows until a chosen date.
 - **Calendar:** week strip, each day's tasks, and helper leave.
 - **Scores:** tasks done this week, this month and all time.
-- **Household:** members and helpers, today's load, the invite code, and appearance (Sunlit, Evening or Match my phone).
+- **Household:** members and helpers with today's load; tap someone to see their tasks. **+** adds someone: invite them with a code, or add them without the app (for example a helper without a smartphone).
+- **Theme:** Sunlit from sunrise to sunset and Evening from sunset to sunrise, Indian Standard Time (calculated for the IST meridian, 82.5°E). Choosing the other theme on Household holds it until the next sunrise or sunset.
 
 ## Structure
 
@@ -46,7 +47,7 @@ src/
   components/          UI built from the design system
   copy/strings.ts      Every user-facing string (mirrors the Copy section)
   data/                Types, sample data, store and selectors
-  lib/                 Date and time helpers
+  lib/                 Date, time, phone and sunrise/sunset helpers
   theme/               Tokens (Sunlit and Evening) and ThemeProvider
 ```
 

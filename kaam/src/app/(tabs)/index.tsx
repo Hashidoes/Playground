@@ -1,13 +1,13 @@
 import { router } from 'expo-router';
 import { View } from 'react-native';
 import { GreetingHeader, NoticeBoard, ProgressGauge } from '../../components/home';
-import { Button, EmptyState, SectionHeader } from '../../components/primitives';
+import { EmptyState, SectionHeader } from '../../components/primitives';
 import { Screen } from '../../components/Screen';
 import { TaskItem } from '../../components/TaskItem';
 import { gaugeMessage, greetings, home as copy } from '../../copy/strings';
 import { myProgress, todaysTasks, useStore } from '../../data/store';
 import { useTaskActions } from '../../data/useTaskActions';
-import { dayOfMonth, dayPart, today, weekdayShort } from '../../lib/dates';
+import { dayOfMonth, dayPart, formatLongDate, today, weekdayShort } from '../../lib/dates';
 import { timeAgo } from '../../lib/timeAgo';
 
 export default function Home() {
@@ -36,7 +36,8 @@ export default function Home() {
         message={gaugeMessage(progress.done, progress.total)}
         day={dayOfMonth(now)}
         weekday={weekdayShort(now)}
-        onViewDay={() => router.navigate('/calendar')}
+        dateLabel={`Today, ${formatLongDate(now)}`}
+        onAddTask={() => router.push('/task/new')}
       />
 
       <NoticeBoard
@@ -48,11 +49,8 @@ export default function Home() {
       <View style={{ gap: 12 }}>
         <SectionHeader title={copy.upNext} action={copy.seeAll} onAction={() => router.navigate('/tasks')} />
         {tasks.length === 0 ? (
-          // A brand-new household: point to the first step instead of "all caught up".
-          <View style={{ gap: 12 }}>
-            <EmptyState message={copy.firstTaskBody} />
-            <Button label={copy.firstTask} icon="plus" onPress={() => router.push('/task/new')} />
-          </View>
+          // A brand-new household: point to the first step (the button is in the gauge above).
+          <EmptyState message={copy.firstTaskBody} />
         ) : upNext.length === 0 ? (
           <EmptyState message={copy.caughtUp} />
         ) : (

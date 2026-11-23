@@ -33,8 +33,6 @@ export const nav = { home: 'Home', tasks: 'Tasks', calendar: 'Calendar', scores:
 
 export const home = {
   hi: (name: string) => `Hi, ${name}`,
-  openMenu: 'Open menu',
-  viewDay: 'View day',
   gaugeCaption: 'done today',
   gaugeLabel: (pct: number) => `${pct} percent of today's tasks done`,
   noticeLabel: 'Notice board',
@@ -44,7 +42,6 @@ export const home = {
   seeAll: 'See all',
   caughtUp: "You're all caught up.",
   firstTaskBody: 'Nothing on the list yet. Add the first thing that needs doing at home.',
-  firstTask: 'Add your first task',
 };
 
 /** Gauge message for the viewer's own tasks today. */
@@ -131,7 +128,7 @@ export const household = {
   members: 'Members',
   helpers: 'Helpers',
   roles: { admin: 'Admin', member: 'Member', helper: 'Helper' },
-  rowMeta: (count: number, done: number) => `${count} ${count === 1 ? 'task' : 'tasks'} today · ${done} done`,
+  rowMeta: (count: number, done: number) => (count === 0 ? 'No tasks today' : `${count} ${count === 1 ? 'task' : 'tasks'} today · ${done} done`),
   invite: 'Invite someone',
   inviteBody: 'Share this code with the people you live with. It works for 7 days.',
   copyCode: 'Copy code',
@@ -254,3 +251,41 @@ export const account = {
   signOutConfirm: 'Sign out of Kaam?',
   cancel: 'Cancel',
 };
+
+export const appearance = {
+  label: 'Appearance',
+  sunlit: 'Sunlit',
+  evening: 'Evening',
+  auto: (sunrise: string, sunset: string) => `Sunlit from sunrise (${sunrise}) and Evening from sunset (${sunset}), Indian Standard Time.`,
+  heldUntil: (theme: string, event: 'sunrise' | 'sunset', time: string) => `${theme} until ${event} at ${time}. Then Kaam follows the sun again.`,
+};
+
+export const gaugeZero = {
+  title: 'Nothing planned today',
+  body: 'Enjoy the quiet, or add something for today.',
+  action: 'Add a task',
+};
+
+export const addMember = {
+  open: 'Add someone',
+  title: 'Add someone',
+  inviteHeading: 'Invite with a code',
+  inviteBody: 'They join from their own phone and see the tasks you give them. The code works for 7 days.',
+  offlineHeading: 'Add without the app',
+  offlineBody: "For someone who won't use Kaam on a phone, like a helper. You give them tasks and mark them done.",
+  nameLabel: 'Their name',
+  namePlaceholder: 'e.g. Rekha',
+  emptyName: 'Add their name.',
+  roleLabel: 'Role',
+  add: (name: string) => (name ? `Add ${name}` : 'Add to household'),
+  added: (name: string) => `${name} added to the household`,
+  or: 'or',
+  close: 'Close',
+};
+
+export const memberRow = {
+  open: (name: string) => `See ${name}'s tasks`,
+  noApp: "Doesn't use the app",
+};
+
+export const leaveWarning = (name: string) => `${name} is on leave that day. Pick someone else, or keep it for when they're back.`;

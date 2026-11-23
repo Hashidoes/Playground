@@ -47,7 +47,7 @@ export default function Calendar() {
                 key={d}
                 onPress={() => setSelected(d)}
                 accessibilityRole="button"
-                accessibilityState={{ selected: on }}
+                aria-selected={on}
                 accessibilityLabel={formatLongDate(d)}
                 style={{ flex: 1, alignItems: 'center', paddingVertical: space[2], gap: 2, borderRadius: radius.md, backgroundColor: on ? colors.highlight : d === now ? colors.surfaceRaised : 'transparent' }}
               >

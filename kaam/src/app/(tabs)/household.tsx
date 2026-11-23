@@ -1,51 +1,66 @@
+import { router } from 'expo-router';
 import { useState } from 'react';
-import { View } from 'react-native';
-import { Avatar, Button, Card, ChoiceRow, Text } from '../../components/primitives';
+import { Pressable, View } from 'react-native';
+import { Avatar, Button, Card, ChoiceRow, Icon, IconButton, Text } from '../../components/primitives';
 import { Screen } from '../../components/Screen';
-import { account, household as copy } from '../../copy/strings';
+import { account, addMember, appearance as appearanceCopy, household as copy, memberRow } from '../../copy/strings';
 import { todaysTasks, useStore } from '../../data/store';
 import type { Member } from '../../data/types';
 import { today } from '../../lib/dates';
-import { useTheme, type Appearance } from '../../theme/ThemeProvider';
+import { formatMinutes } from '../../lib/sun';
+import { useTheme, type ThemeName } from '../../theme/ThemeProvider';
 import { radius, space } from '../../theme/tokens';
-
-const APPEARANCE: { value: Appearance; label: string }[] = [
-  { value: 'sunlit', label: 'Sunlit' },
-  { value: 'evening', label: 'Evening' },
-  { value: 'system', label: 'Match my phone' },
-];
 
 export default function Household() {
   const store = useStore();
-  const { colors, appearance, setAppearance } = useTheme();
+  const { colors, isEvening, sun, override, choose } = useTheme();
+  const [confirmSignOut, setConfirmSignOut] = useState(false);
   const now = today();
   const todays = todaysTasks(store.tasks);
-
-  const [confirmSignOut, setConfirmSignOut] = useState(false);
   const onLeaveToday = store.leave.filter((l) => l.from <= now && l.to >= now);
 
   const row = (m: Member) => {
     const mine = todays.filter((t) => t.assigneeId === m.id);
     const done = mine.filter((t) => t.doneAt).length;
+    const meta = copy.rowMeta(mine.length, done) + (m.usesApp === false ? ` · ${memberRow.noApp}` : '');
     return (
-      <View key={m.id} accessible style={{ flexDirection: 'row', alignItems: 'center', gap: space[3], paddingVertical: space[2] }}>
+      <Pressable
+        key={m.id}
+        onPress={() => router.navigate({ pathname: '/tasks', params: { who: m.id } })}
+        accessibilityRole="button"
+        accessibilityLabel={`${m.name}, ${copy.roles[m.role]}, ${meta}`}
+        accessibilityHint={memberRow.open(m.name)}
+        style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: space[3], paddingVertical: space[2], opacity: pressed ? 0.7 : 1 })}
+      >
         <Avatar name={m.name} color={m.color} size={42} />
         <View style={{ flex: 1 }}>
           <Text variant="bodyStrong">{m.id === store.meId ? `${m.name} (${copy.you.toLowerCase()})` : m.name}</Text>
-          <Text variant="label" color="inkMuted">{copy.rowMeta(mine.length, done)}</Text>
+          <Text variant="label" color="inkMuted">{meta}</Text>
         </View>
         <View style={{ paddingHorizontal: space[3], paddingVertical: space[1], borderRadius: radius.pill, backgroundColor: colors.surfaceSunken }}>
           <Text variant="label">{copy.roles[m.role]}</Text>
         </View>
-      </View>
+        <Icon name="caretRight" size={16} color={colors.inkMuted} />
+      </Pressable>
     );
   };
 
   const members = store.members.filter((m) => m.role !== 'helper');
   const helpers = store.members.filter((m) => m.role === 'helper');
 
+  const current: ThemeName = isEvening ? 'evening' : 'sunlit';
+  const sunrise = formatMinutes(sun.sunrise);
+  const sunset = formatMinutes(sun.sunset);
+  const caption = override
+    ? appearanceCopy.heldUntil(
+        override.theme === 'evening' ? appearanceCopy.evening : appearanceCopy.sunlit,
+        sun.isDay ? 'sunset' : 'sunrise',
+        sun.isDay ? sunset : sunrise,
+      )
+    : appearanceCopy.auto(sunrise, sunset);
+
   return (
-    <Screen title={store.household.name}>
+    <Screen title={store.household.name} right={<IconButton label={addMember.open} size="lg" onPress={() => router.push('/member/new')} />}>
       {onLeaveToday.map((l) => {
         const who = store.memberById(l.memberId);
         const count = todays.filter((t) => t.assigneeId === l.memberId && !t.doneAt).length;
@@ -56,29 +71,30 @@ export default function Household() {
         ) : null;
       })}
 
-      <View style={{ gap: space[2] }}>
-        <Text variant="caption" color="inkMuted" accessibilityRole="header">{copy.members.toUpperCase()}</Text>
+      <View style={{ gap: space[1] }}>
+        <Text variant="caption" color="inkMuted" accessibilityRole="header" style={{ letterSpacing: 0.6 }}>{copy.members.toUpperCase()}</Text>
         {members.map(row)}
       </View>
 
       {helpers.length ? (
-        <View style={{ gap: space[2] }}>
-          <Text variant="caption" color="inkMuted" accessibilityRole="header">{copy.helpers.toUpperCase()}</Text>
+        <View style={{ gap: space[1] }}>
+          <Text variant="caption" color="inkMuted" accessibilityRole="header" style={{ letterSpacing: 0.6 }}>{copy.helpers.toUpperCase()}</Text>
           {helpers.map(row)}
         </View>
       ) : null}
 
-      <View style={{ padding: space[5], borderRadius: radius.md, backgroundColor: colors.notice, gap: space[3] }}>
-        <Text variant="bodyStrong" color="onNotice">{copy.invite}</Text>
-        <Text variant="body" color="onNotice">{copy.inviteBody}</Text>
-        <Text selectable variant="title" color="noticeLabel" style={{ letterSpacing: 2 }} accessibilityLabel={`Invite code ${store.household.inviteCode.split('').join(' ')}`}>
-          {store.household.inviteCode}
-        </Text>
-      </View>
-
       <View style={{ gap: space[3] }}>
-        <Text variant="caption" color="inkMuted" accessibilityRole="header">APPEARANCE</Text>
-        <ChoiceRow label="Appearance" value={appearance} onChange={setAppearance} options={APPEARANCE} />
+        <Text variant="caption" color="inkMuted" accessibilityRole="header" style={{ letterSpacing: 0.6 }}>{appearanceCopy.label.toUpperCase()}</Text>
+        <ChoiceRow
+          label={appearanceCopy.label}
+          value={current}
+          onChange={choose}
+          options={[
+            { value: 'sunlit', label: appearanceCopy.sunlit },
+            { value: 'evening', label: appearanceCopy.evening },
+          ]}
+        />
+        <Text variant="label" color="inkMuted" accessibilityLiveRegion="polite">{caption}</Text>
       </View>
 
       {confirmSignOut ? (

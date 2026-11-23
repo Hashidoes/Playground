@@ -74,7 +74,7 @@ export function TaskItem({
         onPress={onToggle}
         hitSlop={10}
         accessibilityRole="checkbox"
-        accessibilityState={{ checked: done }}
+        aria-checked={done}
         accessibilityLabel={done ? copy.markNotDone(task.title) : copy.markDone(task.title)}
         style={{
           width: 26,
