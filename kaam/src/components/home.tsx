@@ -4,7 +4,7 @@ import { gaugeZero, home as copy } from '../copy/strings';
 import type { Language, Member } from '../data/types';
 import { useTheme } from '../theme/ThemeProvider';
 import { radius, space } from '../theme/tokens';
-import { Avatar, Icon, IconButton, Text } from './primitives';
+import { Avatar, Icon, Text } from './primitives';
 
 // ---------- GreetingHeader ----------
 
@@ -143,32 +143,6 @@ export function DateBadge({ day, weekday, label }: { day: string; weekday: strin
   );
 }
 
-// ---------- NoticeBoard ----------
-
-export function NoticeBoard({ message, meta, onAdd }: { message?: string; meta?: string; onAdd?: () => void }) {
-  const { colors } = useTheme();
-  return (
-    <View
-      accessibilityLabel={copy.noticeLabel}
-      style={{ flexDirection: 'row', alignItems: 'center', gap: space[4], minHeight: 102, padding: space[4], borderRadius: radius.md, backgroundColor: colors.notice }}
-    >
-      <View style={{ flex: 1, gap: space[3] }}>
-        <View style={{ paddingBottom: space[1], borderBottomWidth: 1, borderBottomColor: colors.line }}>
-          <Text variant="eyebrow" color="noticeLabel">{copy.noticeLabel}</Text>
-        </View>
-        {message ? (
-          <View style={{ gap: 2 }}>
-            <Text variant="bodySemibold" color="onNotice">{message}</Text>
-            {meta ? <Text variant="label" color="onNotice" style={{ opacity: 0.85 }}>{meta}</Text> : null}
-          </View>
-        ) : (
-          <Text variant="body" color="onNotice">{copy.noticeEmpty}</Text>
-        )}
-      </View>
-      <IconButton label={copy.addNotice} onPress={onAdd} />
-    </View>
-  );
-}
 
 // ---------- BottomNav ----------
 

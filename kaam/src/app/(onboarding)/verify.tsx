@@ -8,7 +8,6 @@ import { onboarding, signIn as copy } from '../../copy/strings';
 import { useStore } from '../../data/store';
 import { useTheme } from '../../theme/ThemeProvider';
 import { radius, space, type } from '../../theme/tokens';
-import { formatPhone } from '../../lib/phone';
 
 const LENGTH = 6;
 const RESEND_SECONDS = 30;
@@ -48,10 +47,10 @@ export default function Verify() {
   return (
     <StepScreen
       title={copy.codeTitle}
-      body={copy.codeBody(formatPhone(store.draft.phone))}
+      body={copy.codeBody(store.draft.email)}
       onBack={() => router.back()}
       backLabel={onboarding.back}
-      secondary={{ label: copy.changeNumber, onPress: () => router.back() }}
+      secondary={{ label: copy.changeEmail, onPress: () => router.back() }}
       primary={{ label: copy.verify, onPress: () => check(code), disabled: code.length < LENGTH }}
     >
       <Pressable onPress={() => input.current?.focus()} accessible={false}>

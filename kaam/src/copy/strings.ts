@@ -35,9 +35,6 @@ export const home = {
   hi: (name: string) => `Hi, ${name}`,
   gaugeCaption: 'done today',
   gaugeLabel: (pct: number) => `${pct} percent of today's tasks done`,
-  noticeLabel: 'Notice board',
-  noticeEmpty: 'No notices yet. Tap + to share something with everyone.',
-  addNotice: 'Add a notice',
   upNext: 'Up next',
   seeAll: 'See all',
   caughtUp: "You're all caught up.",
@@ -55,6 +52,11 @@ export function gaugeMessage(done: number, total: number): string {
   if (pct >= 50) return 'Good going. Keep it up.';
   return 'Off to a good start.';
 }
+
+export const gaugeZero = {
+  title: 'Nothing planned today',
+  body: 'Enjoy the quiet, or add something for today.',
+};
 
 export const tasks = {
   title: 'Tasks',
@@ -75,12 +77,13 @@ export const tasks = {
   emptyFor: (name: string) => `Nothing for ${name} today.`,
   doneToast: (title: string) => `'${title}' is done.`,
   allDoneToast: "That's everything for today!",
-  undoneToast: 'Moved back to your list.',
+  undoneToast: 'Moved back to the list.',
   deletedToast: 'Task deleted',
-  pickedUpToast: "It's yours now.",
   undo: 'Undo',
   markDone: (title: string) => `Mark '${title}' done`,
   markNotDone: (title: string) => `Mark '${title}' not done`,
+  /** Shown when someone taps a task that isn't theirs to tick. */
+  notYours: (name: string) => `Only ${name} or an admin can tick this off.`,
   // Meta line patterns
   doneBy: (name: string, time: string) => `Done by ${name} · ${time}`,
   overdueYesterday: 'Overdue · was due yesterday',
@@ -93,11 +96,10 @@ export const newTask = {
   editTitle: 'Edit task',
   placeholder: 'What needs doing?',
   suggestions: 'Add again',
+  privateToggle: 'Private for you',
+  privateOff: 'Everyone in the household can see this task.',
+  privateOn: "Only you can see this task. It's yours, and it doesn't count on the score board.",
   who: "Who's doing it?",
-  visibility: 'Who can see it?',
-  visibleEveryone: 'Everyone',
-  visibleMe: 'Only me',
-  privateHint: "Only you will see this task. It stays on your list and doesn't count on the score board.",
   me: 'Me',
   anyone: 'Anyone',
   when: 'When',
@@ -127,47 +129,39 @@ export const calendar = {
   title: 'Calendar',
   today: 'Today',
   summary: (count: number, done: number) => `${count} ${count === 1 ? 'task' : 'tasks'} · ${done} done`,
-  onLeave: (name: string) => `${name} on leave`,
   empty: 'Nothing on this day.',
   addForDay: 'Add a task for this day',
 };
 
 export const household = {
   members: 'Members',
-  helpers: 'Helpers',
-  roles: { admin: 'Admin', member: 'Member', helper: 'Helper' },
+  roles: { admin: 'Admin', member: 'Member' },
   rowMeta: (count: number, done: number) => (count === 0 ? 'No tasks today' : `${count} ${count === 1 ? 'task' : 'tasks'} today · ${done} done`),
-  invite: 'Invite someone',
-  inviteBody: 'Share this code with the people you live with. It works for 7 days.',
-  copyCode: 'Copy code',
-  codeCopied: 'Code copied',
-  onLeaveBanner: (name: string, count: number) => `${name} is on leave today. ${count} ${count === 1 ? 'task needs' : 'tasks need'} someone else.`,
+  noApp: "Doesn't use the app",
   you: 'You',
+  // Admin actions on someone, like a WhatsApp group admin
+  manage: (name: string) => `Manage ${name}`,
+  makeAdmin: 'Make admin',
+  dismissAdmin: 'Dismiss as admin',
+  remove: 'Remove',
+  removeConfirm: (name: string) => `Remove ${name} from the household? Their open tasks will be left for anyone to pick up.`,
+  removed: (name: string) => `${name} removed`,
+  nowAdmin: (name: string) => `${name} is now an admin`,
+  noLongerAdmin: (name: string) => `${name} is no longer an admin`,
+  lastAdmin: 'Make someone else an admin first. A household always needs one.',
+  cancel: 'Cancel',
 };
 
 export const scores = {
   title: 'Score board',
-  tabs: ['This week', 'This month', 'All time'] as const,
+  thisWeek: 'This week',
   youLead: "You're leading this week!",
-  youLeadMonth: "You're leading this month!",
-  youLeadAll: "You're in the lead!",
-  someoneLeads: (name: string, period: string) => `${name} is leading ${period}`,
+  someoneLeads: (name: string) => `${name} is leading this week`,
   tie: "It's a tie at the top",
   nothingYet: 'No tasks done yet this week.',
-  nothingYetMonth: 'No tasks done yet this month.',
   rowLabel: (name: string, n: number) => `${name}, ${n} ${n === 1 ? 'task' : 'tasks'} done`,
-  total: (n: number, period: string) => `Together you finished ${n} ${n === 1 ? 'task' : 'tasks'} ${period}.`,
-  footnote: 'Scores start fresh every Monday.',
-};
-
-export const notices = {
-  title: 'Notice board',
-  sheetTitle: 'Share a notice',
-  placeholder: 'e.g. Tanya has PTI tomorrow at 11:30 am',
-  showUntil: 'Show until',
-  missingMessage: 'Write the notice first.',
-  post: 'Post notice',
-  posted: 'Notice posted. Everyone will see it on Home.',
+  total: (n: number) => `Together you finished ${n} ${n === 1 ? 'task' : 'tasks'} this week.`,
+  footnote: "Scores start fresh every Monday. Private tasks don't count.",
 };
 
 export const system = {
@@ -193,22 +187,25 @@ export const onboarding = {
 
 export const signIn = {
   title: "Let's get you in",
-  body: "Enter your phone number. We'll text you a 6-digit code.",
-  phoneLabel: 'Phone number',
-  countryCode: '+91',
+  body: "Enter your email. We'll send you a 6-digit code.",
+  emailLabel: 'Email',
+  emailPlaceholder: 'name@example.com',
   sendCode: 'Send code',
-  invalidNumber: 'Enter a 10-digit mobile number.',
-  codeTitle: 'Enter the code',
-  codeBody: (phone: string) => `Sent to ${phone}.`,
-  changeNumber: 'Change number',
+  invalidEmail: 'Enter an email address like name@example.com.',
+  or: 'or',
+  google: 'Continue with Google',
+  codeTitle: 'Check your email',
+  codeBody: (email: string) => `We sent a 6-digit code to ${email}.`,
+  changeEmail: 'Change email',
   resendIn: (s: number) => `Resend code in 0:${String(s).padStart(2, '0')}`,
   resend: 'Resend code',
   resent: 'New code sent',
-  wrongCode: "That code doesn't match. Check the message and try again.",
+  wrongCode: "That code doesn't match. Check the email and try again.",
   codeLabel: '6-digit code',
   verify: 'Continue',
   /** Shown only while the app runs on sample data, before Supabase is connected. */
   sampleHint: 'Sample mode: any 6 digits work, except 000000.',
+  sampleGoogleHint: 'Sample mode: Google sign-in is simulated until Supabase is connected.',
 };
 
 export const profile = {
@@ -223,7 +220,7 @@ export const profile = {
 export const setup = {
   title: 'Set up your household',
   startTitle: 'Start a new household',
-  startBody: 'Make a shared list and invite the people you live with.',
+  startBody: "Make a shared list and invite the people you live with. You'll be its admin.",
   joinTitle: 'Join a household',
   joinBody: 'Got an invite code? Enter it here.',
   nameTitle: 'Name your household',
@@ -235,9 +232,6 @@ export const setup = {
   create: 'Create household',
   inviteTitle: 'Invite your household',
   inviteBody: 'Share this code with the people you live with. It works for 7 days.',
-  inviteAs: 'Invite as',
-  memberRole: 'Can add, assign and finish any task.',
-  helperRole: 'Sees only the tasks given to them, and can mark leave.',
   share: 'Share invite',
   copy: 'Copy code',
   copied: 'Code copied',
@@ -249,7 +243,7 @@ export const setup = {
   joinButton: 'Join household',
   codeNotFound: "We couldn't find that code. Check it with the person who sent it, or ask for a new one.",
   joined: (household: string) => `You've joined ${household}`,
-  joinedBody: 'Your tasks, the notice board and the score board are ready.',
+  joinedBody: 'Your tasks and the score board are ready.',
   goHome: 'Go to Home',
   sampleJoinHint: 'Sample mode: use code NAI-428 to join the example household.',
 };
@@ -257,6 +251,8 @@ export const setup = {
 export const account = {
   signOut: 'Sign out',
   signOutConfirm: 'Sign out of Kaam?',
+  leave: 'Leave household',
+  leaveConfirm: (household: string) => `Leave ${household}? Your private tasks will be deleted and your open tasks left for anyone.`,
   cancel: 'Cancel',
 };
 
@@ -266,30 +262,18 @@ export const appearance = {
   evening: 'Evening',
 };
 
-export const gaugeZero = {
-  title: 'Nothing planned today',
-  body: 'Enjoy the quiet, or add something for today.',
-};
-
 export const addMember = {
   open: 'Add someone',
   title: 'Add someone',
   inviteHeading: 'Invite with a code',
   inviteBody: 'They join from their own phone and see the tasks you give them. The code works for 7 days.',
   offlineHeading: 'Add without the app',
-  offlineBody: "For someone who won't use Kaam on a phone, like a helper. You give them tasks and mark them done.",
+  offlineBody: "For someone who won't use Kaam on a phone, like a grandparent. Give them tasks, and an admin ticks them off.",
   nameLabel: 'Their name',
-  namePlaceholder: 'e.g. Rekha',
+  namePlaceholder: 'e.g. Ammamma',
   emptyName: 'Add their name.',
-  roleLabel: 'Role',
   add: (name: string) => (name ? `Add ${name}` : 'Add to household'),
   added: (name: string) => `${name} added to the household`,
   or: 'or',
   close: 'Close',
 };
-
-export const memberRow = {
-  noApp: "Doesn't use the app",
-};
-
-export const leaveWarning = (name: string) => `${name} is on leave that day. Pick someone else, or keep it for when they're back.`;

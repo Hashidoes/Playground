@@ -4,7 +4,8 @@
 export type ISODate = string; // 'YYYY-MM-DD' in the household's local time
 export type Time = string; // 'HH:mm', 24-hour
 
-export type Role = 'admin' | 'member' | 'helper';
+/** Like a WhatsApp group: admins manage people and can tick anyone's tasks. */
+export type Role = 'admin' | 'member';
 export type Language = 'en' | 'ml' | 'hi';
 export type HouseholdKind = 'family' | 'roommates';
 
@@ -25,7 +26,7 @@ export type Member = {
   color: string;
   language: Language;
   avatarUrl?: string;
-  /** False for someone added without the app (for example a helper without a smartphone). */
+  /** False for someone added without the app (an admin ticks off their tasks). */
   usesApp?: boolean;
 };
 
@@ -51,18 +52,4 @@ export type Task = {
   doneById: string | null;
 };
 
-export type Notice = {
-  id: string;
-  message: string;
-  authorId: string;
-  createdAt: string;
-  showUntil: ISODate | null; // null: until someone removes it
-};
 
-export type Leave = {
-  id: string;
-  memberId: string;
-  from: ISODate;
-  to: ISODate;
-  note?: string;
-};

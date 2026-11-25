@@ -252,3 +252,30 @@ export function Card({ children, style }: { children: React.ReactNode; style?: S
 }
 
 export type { PressableProps };
+
+/**
+ * A drawn on/off switch, identical on every platform. Purely visual: put it inside
+ * a control that has accessibilityRole="switch" and aria-checked.
+ */
+export function SwitchLook({ on }: { on: boolean }) {
+  const { colors } = useTheme();
+  return (
+    <View aria-hidden pointerEvents="none" style={{ width: 48, height: 28, borderRadius: 14, padding: 3, backgroundColor: on ? colors.highlight : colors.track, justifyContent: 'center' }}>
+      <View
+        style={{
+          width: 22,
+          height: 22,
+          borderRadius: 11,
+          // Off: muted ink, so the knob stands out from the track in both themes.
+          backgroundColor: on ? colors.onHighlight : colors.inkMuted,
+          transform: [{ translateX: on ? 20 : 0 }],
+          shadowColor: '#000',
+          shadowOpacity: 0.2,
+          shadowRadius: 2,
+          shadowOffset: { width: 0, height: 1 },
+          elevation: 2,
+        }}
+      />
+    </View>
+  );
+}

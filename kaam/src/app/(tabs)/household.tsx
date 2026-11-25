@@ -1,85 +1,133 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
-import { Avatar, Button, Card, ChoiceRow, IconButton, Text } from '../../components/primitives';
+import { Avatar, Button, ChoiceRow, IconButton, Text } from '../../components/primitives';
 import { Screen } from '../../components/Screen';
-import { account, addMember, appearance as appearanceCopy, household as copy, memberRow } from '../../copy/strings';
+import { useToast } from '../../components/Toast';
+import { account, addMember, appearance as appearanceCopy, household as copy } from '../../copy/strings';
 import { todaysTasks, useStore } from '../../data/store';
 import type { Member } from '../../data/types';
-import { today } from '../../lib/dates';
 import { useTheme, type ThemeName } from '../../theme/ThemeProvider';
 import { radius, space } from '../../theme/tokens';
 
+type Confirm = 'signOut' | 'leave' | null;
+
 export default function Household() {
   const store = useStore();
+  const toast = useToast();
   const { colors, isEvening, choose } = useTheme();
-  const [confirmSignOut, setConfirmSignOut] = useState(false);
-  const now = today();
+  const [confirm, setConfirm] = useState<Confirm>(null);
+  // Admin only: whose actions are open, and whether removal is being confirmed.
+  const [managing, setManaging] = useState<string | null>(null);
+  const [confirmRemove, setConfirmRemove] = useState(false);
   const todays = todaysTasks(store.tasks);
-  const onLeaveToday = store.leave.filter((l) => l.from <= now && l.to >= now);
+  const adminCount = store.members.filter((m) => m.role === 'admin').length;
+
+  function toggleAdmin(m: Member) {
+    if (m.role === 'admin') {
+      if (adminCount === 1) return toast({ message: copy.lastAdmin });
+      store.setRole(m.id, 'member');
+      toast({ message: copy.noLongerAdmin(m.name) });
+    } else {
+      store.setRole(m.id, 'admin');
+      toast({ message: copy.nowAdmin(m.name) });
+    }
+    setManaging(null);
+  }
+
+  function remove(m: Member) {
+    store.removeMember(m.id);
+    toast({ message: copy.removed(m.name) });
+    setManaging(null);
+    setConfirmRemove(false);
+  }
 
   const row = (m: Member) => {
     const mine = todays.filter((t) => t.assigneeId === m.id);
     const done = mine.filter((t) => t.doneAt).length;
-    const meta = copy.rowMeta(mine.length, done) + (m.usesApp === false ? ` · ${memberRow.noApp}` : '');
+    const meta = copy.rowMeta(mine.length, done) + (m.usesApp === false ? ` · ${copy.noApp}` : '');
+    const canManage = store.isAdmin && m.id !== store.meId;
+    const open = managing === m.id;
     return (
-      <View
-        key={m.id}
-        accessible
-        accessibilityLabel={`${m.name}, ${copy.roles[m.role]}, ${meta}`}
-        style={{ flexDirection: 'row', alignItems: 'center', gap: space[3], paddingVertical: space[2] }}
-      >
-        <Avatar name={m.name} color={m.color} size={42} />
-        <View style={{ flex: 1 }}>
-          <Text variant="bodyStrong">{m.id === store.meId ? `${m.name} (${copy.you.toLowerCase()})` : m.name}</Text>
-          <Text variant="label" color="inkMuted">{meta}</Text>
+      <View key={m.id} style={{ gap: space[2] }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[3], paddingVertical: space[2] }}>
+          <View accessible accessibilityLabel={`${m.name}, ${copy.roles[m.role]}, ${meta}`} style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: space[3] }}>
+            <Avatar name={m.name} color={m.color} size={42} />
+            <View style={{ flex: 1 }}>
+              <Text variant="bodyStrong">{m.id === store.meId ? `${m.name} (${copy.you.toLowerCase()})` : m.name}</Text>
+              <Text variant="label" color="inkMuted">{meta}</Text>
+            </View>
+            <View style={{ paddingHorizontal: space[3], paddingVertical: space[1], borderRadius: radius.pill, backgroundColor: m.role === 'admin' ? colors.highlight : colors.surfaceSunken }}>
+              <Text variant="label" color={m.role === 'admin' ? 'onHighlight' : 'ink'}>{copy.roles[m.role]}</Text>
+            </View>
+          </View>
+          {canManage ? (
+            <IconButton
+              icon="more"
+              label={copy.manage(m.name)}
+              variant="ghost"
+              onPress={() => {
+                setManaging(open ? null : m.id);
+                setConfirmRemove(false);
+              }}
+            />
+          ) : null}
         </View>
-        <View style={{ paddingHorizontal: space[3], paddingVertical: space[1], borderRadius: radius.pill, backgroundColor: colors.surfaceSunken }}>
-          <Text variant="label">{copy.roles[m.role]}</Text>
-        </View>
+
+        {canManage && open ? (
+          <View style={{ gap: space[3], padding: space[4], borderRadius: radius.md, backgroundColor: colors.surfaceRaised }}>
+            {confirmRemove ? (
+              <>
+                <Text variant="bodySemibold">{copy.removeConfirm(m.name)}</Text>
+                <View style={{ flexDirection: 'row', gap: space[3] }}>
+                  <Button label={copy.remove} variant="danger" onPress={() => remove(m)} style={{ flex: 1 }} />
+                  <Button label={copy.cancel} variant="ghost" onPress={() => setConfirmRemove(false)} style={{ flex: 1 }} />
+                </View>
+              </>
+            ) : (
+              <View style={{ flexDirection: 'row', gap: space[3] }}>
+                <Button label={m.role === 'admin' ? copy.dismissAdmin : copy.makeAdmin} variant="secondary" size="sm" onPress={() => toggleAdmin(m)} style={{ flex: 1, backgroundColor: colors.surface }} />
+                <Button label={copy.remove} variant="ghost" size="sm" onPress={() => setConfirmRemove(true)} style={{ flex: 1 }} />
+              </View>
+            )}
+          </View>
+        ) : null}
       </View>
     );
   };
 
-  const members = store.members.filter((m) => m.role !== 'helper');
-  const helpers = store.members.filter((m) => m.role === 'helper');
-
   const current: ThemeName = isEvening ? 'evening' : 'sunlit';
+
+  const confirmBox = (question: string, label: string, onYes: () => void) => (
+    <View style={{ gap: space[3], padding: space[4], borderRadius: radius.md, borderWidth: 2, borderColor: colors.line }}>
+      <Text variant="bodyStrong">{question}</Text>
+      <View style={{ flexDirection: 'row', gap: space[3] }}>
+        <Button label={label} variant="highlight" onPress={onYes} style={{ flex: 1 }} />
+        <Button label={account.cancel} variant="ghost" onPress={() => setConfirm(null)} style={{ flex: 1 }} />
+      </View>
+    </View>
+  );
 
   return (
     <Screen
       title={store.household.name}
+      // Like a WhatsApp group, only admins add people.
       fab={
-        <IconButton
-          label={addMember.open}
-          size="lg"
-          variant="raised"
-          onPress={() => router.push('/member/new')}
-          style={{ shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 6 }}
-        />
+        store.isAdmin ? (
+          <IconButton
+            label={addMember.open}
+            size="lg"
+            variant="raised"
+            onPress={() => router.push('/member/new')}
+            style={{ shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 6 }}
+          />
+        ) : undefined
       }
     >
-      {onLeaveToday.map((l) => {
-        const who = store.memberById(l.memberId);
-        const count = todays.filter((t) => t.assigneeId === l.memberId && !t.doneAt).length;
-        return who ? (
-          <Card key={l.id} style={{ borderWidth: 2, borderColor: colors.accent }}>
-            <Text variant="bodySemibold">{copy.onLeaveBanner(who.name, count)}</Text>
-          </Card>
-        ) : null;
-      })}
-
       <View style={{ gap: space[1] }}>
         <Text variant="caption" color="inkMuted" accessibilityRole="header" style={{ letterSpacing: 0.6 }}>{copy.members.toUpperCase()}</Text>
-        {members.map(row)}
+        {store.members.map(row)}
       </View>
-
-      {helpers.length ? (
-        <View style={{ gap: space[1] }}>
-          <Text variant="caption" color="inkMuted" accessibilityRole="header" style={{ letterSpacing: 0.6 }}>{copy.helpers.toUpperCase()}</Text>
-          {helpers.map(row)}
-        </View>
-      ) : null}
 
       <View style={{ gap: space[3] }}>
         <Text variant="caption" color="inkMuted" accessibilityRole="header" style={{ letterSpacing: 0.6 }}>{appearanceCopy.label.toUpperCase()}</Text>
@@ -94,16 +142,15 @@ export default function Household() {
         />
       </View>
 
-      {confirmSignOut ? (
-        <View style={{ gap: space[3], padding: space[4], borderRadius: radius.md, borderWidth: 2, borderColor: colors.line }}>
-          <Text variant="bodyStrong">{account.signOutConfirm}</Text>
-          <View style={{ flexDirection: 'row', gap: space[3] }}>
-            <Button label={account.signOut} variant="highlight" onPress={store.signOut} style={{ flex: 1 }} />
-            <Button label={account.cancel} variant="ghost" onPress={() => setConfirmSignOut(false)} style={{ flex: 1 }} />
-          </View>
-        </View>
+      {confirm === 'leave' ? (
+        confirmBox(account.leaveConfirm(store.household.name), account.leave, store.leaveHousehold)
+      ) : confirm === 'signOut' ? (
+        confirmBox(account.signOutConfirm, account.signOut, store.signOut)
       ) : (
-        <Button label={account.signOut} variant="ghost" onPress={() => setConfirmSignOut(true)} />
+        <View style={{ gap: space[3] }}>
+          <Button label={account.leave} variant="ghost" onPress={() => setConfirm('leave')} />
+          <Button label={account.signOut} variant="ghost" onPress={() => setConfirm('signOut')} />
+        </View>
       )}
     </Screen>
   );

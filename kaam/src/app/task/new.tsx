@@ -1,10 +1,10 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Button, Chip, ChoiceRow, Icon, IconButton, Text } from '../../components/primitives';
+import { Button, Chip, ChoiceRow, Icon, IconButton, SwitchLook, Text } from '../../components/primitives';
 import { useToast } from '../../components/Toast';
-import { leaveWarning, newTask as copy, reminderLabels, repeatLabels, tasks as taskCopy } from '../../copy/strings';
+import { newTask as copy, reminderLabels, repeatLabels, tasks as taskCopy } from '../../copy/strings';
 import { useStore } from '../../data/store';
 import type { Reminder, Repeat, Time } from '../../data/types';
 import { addDays, formatShortDate, formatTime, timeFromDate, today } from '../../lib/dates';
@@ -79,8 +79,6 @@ export default function TaskSheet() {
   // For today, only offer times that are still ahead (keep a time an existing task already has).
   const nowTime = timeFromDate(new Date());
   const times = dueDate === now ? TIMES.filter((t) => t > nowTime || t === dueTime) : TIMES;
-  const assignee = store.memberById(isPrivate ? store.meId : assigneeId);
-  const onLeave = assignee && store.leave.some((l) => l.memberId === assignee.id && l.from <= dueDate && l.to >= dueDate) ? assignee : undefined;
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: colors.surface }}>
@@ -113,25 +111,25 @@ export default function TaskSheet() {
           ) : null}
         </View>
 
-        <Field label={copy.visibility}>
-          <ChoiceRow
-            label={copy.visibility}
-            value={isPrivate ? 'me' : 'everyone'}
-            onChange={(v) => setIsPrivate(v === 'me')}
-            options={[
-              { value: 'everyone', label: copy.visibleEveryone },
-              { value: 'me', label: copy.visibleMe },
-            ]}
-          />
-          {isPrivate ? (
-            <View style={{ flexDirection: 'row', gap: space[2], alignItems: 'flex-start' }}>
-              <Icon name="lock" size={14} color={colors.highlight} />
-              <Text variant="label" color="inkMuted" style={{ flex: 1 }}>{copy.privateHint}</Text>
-            </View>
-          ) : null}
-        </Field>
+        {/* One switch decides privacy; the whole row is the tap target. */}
+        <Pressable
+          onPress={() => setIsPrivate((v) => !v)}
+          accessibilityRole="switch"
+          aria-checked={isPrivate}
+          accessibilityLabel={copy.privateToggle}
+          accessibilityHint={isPrivate ? copy.privateOn : copy.privateOff}
+          style={{ flexDirection: 'row', alignItems: 'center', gap: space[3], padding: space[4], borderRadius: radius.md, backgroundColor: colors.surfaceRaised }}
+        >
+          <Icon name="lock" size={22} color={isPrivate ? colors.highlight : colors.inkMuted} />
+          <View style={{ flex: 1, gap: 2 }}>
+            <Text variant="bodyStrong">{copy.privateToggle}</Text>
+            <Text variant="label" color="inkMuted">{isPrivate ? copy.privateOn : copy.privateOff}</Text>
+          </View>
+          <SwitchLook on={isPrivate} />
+        </Pressable>
 
-        {isPrivate ? (onLeave ? <Text variant="label" color="danger">{leaveWarning(onLeave.name)}</Text> : null) : (
+        {/* A private task is always yours, so there's no one to choose. */}
+        {isPrivate ? null : (
         <Field label={copy.who}>
           <View accessibilityRole="radiogroup" accessibilityLabel={copy.who} style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space[2] }}>
             {people.map((m) => (
@@ -139,7 +137,6 @@ export default function TaskSheet() {
             ))}
             <Chip label={copy.anyone} selected={assigneeId === null} onPress={() => setAssigneeId(null)} />
           </View>
-          {onLeave ? <Text variant="label" color="danger" accessibilityLiveRegion="polite">{leaveWarning(onLeave.name)}</Text> : null}
         </Field>
         )}
 

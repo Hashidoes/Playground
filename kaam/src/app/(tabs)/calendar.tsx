@@ -24,7 +24,6 @@ export default function Calendar() {
 
   const list = tasksOnDay(store.tasks, selected);
   const done = list.filter((t) => t.doneAt).length;
-  const onLeave = store.leave.filter((l) => l.from <= selected && l.to >= selected).map((l) => store.memberById(l.memberId)?.name).filter(Boolean) as string[];
   const month = fromISODate(weekStart);
 
   return (
@@ -63,9 +62,6 @@ export default function Calendar() {
       <View style={{ gap: space[1] }}>
         <Text variant="heading" accessibilityRole="header">{formatLongDate(selected)}</Text>
         {list.length ? <Text variant="label" color="inkMuted">{copy.summary(list.length, done)}</Text> : null}
-        {onLeave.map((n) => (
-          <Text key={n} variant="label" color="highlight">{copy.onLeave(n)}</Text>
-        ))}
       </View>
 
       {list.length === 0 ? (
@@ -79,7 +75,8 @@ export default function Calendar() {
               assignee={store.memberById(t.assigneeId)}
               doneBy={store.memberById(t.doneById)}
               onToggle={() => toggle(t)}
-              onPress={t.doneAt ? undefined : () => router.push({ pathname: '/task/new', params: { id: t.id } })}
+                canToggle={store.canTick(t)}
+              onPress={t.doneAt || !store.canEdit(t) ? undefined : () => router.push({ pathname: '/task/new', params: { id: t.id } })}
             />
           ))}
         </View>

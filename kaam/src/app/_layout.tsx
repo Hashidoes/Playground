@@ -20,7 +20,6 @@ function RootStack() {
         <Stack.Protected guard={onboarded} redirectTo="/welcome">
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="task/new" options={{ presentation: 'modal' }} />
-          <Stack.Screen name="notice/new" options={{ presentation: 'modal' }} />
           <Stack.Screen name="member/new" options={{ presentation: 'modal' }} />
         </Stack.Protected>
         {/* Everyone else: welcome, sign in, profile, household. */}

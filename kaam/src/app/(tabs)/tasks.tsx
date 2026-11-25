@@ -119,7 +119,8 @@ export default function Tasks() {
                 doneBy={store.memberById(t.doneById)}
                 showAssignee={scope === 'everyone'}
                 onToggle={() => toggle(t)}
-                onPress={t.doneAt ? undefined : () => router.push({ pathname: '/task/new', params: { id: t.id } })}
+                canToggle={store.canTick(t)}
+                onPress={t.doneAt || !store.canEdit(t) ? undefined : () => router.push({ pathname: '/task/new', params: { id: t.id } })}
               />
             ))}
           </View>

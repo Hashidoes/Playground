@@ -4,11 +4,10 @@ import { Platform, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { InviteCode } from '../../components/InviteCode';
 import { Field } from '../../components/onboarding';
-import { Button, ChoiceRow, IconButton, Text } from '../../components/primitives';
+import { Button, IconButton, Text } from '../../components/primitives';
 import { useToast } from '../../components/Toast';
-import { addMember as copy, household } from '../../copy/strings';
+import { addMember as copy } from '../../copy/strings';
 import { useStore } from '../../data/store';
-import type { Role } from '../../data/types';
 import { useTheme } from '../../theme/ThemeProvider';
 import { space } from '../../theme/tokens';
 
@@ -19,7 +18,6 @@ export default function AddMember() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const [name, setName] = useState('');
-  const [role, setRole] = useState<Exclude<Role, 'admin'>>('helper');
   const [error, setError] = useState<string | null>(null);
 
   const close = () => (router.canGoBack() ? router.back() : router.replace('/household'));
@@ -27,7 +25,7 @@ export default function AddMember() {
   function addOffline() {
     const n = name.trim();
     if (!n) return setError(copy.emptyName);
-    store.addMember(n, role);
+    store.addMember(n);
     toast({ message: copy.added(n) });
     close();
   }
@@ -67,18 +65,6 @@ export default function AddMember() {
             onSubmitEditing={addOffline}
             error={error}
           />
-          <View style={{ gap: space[2] }}>
-            <Text variant="bodySemibold">{copy.roleLabel}</Text>
-            <ChoiceRow
-              label={copy.roleLabel}
-              value={role}
-              onChange={setRole}
-              options={[
-                { value: 'helper', label: household.roles.helper },
-                { value: 'member', label: household.roles.member },
-              ]}
-            />
-          </View>
           <Button label={copy.add(name.trim())} variant="secondary" icon="plus" onPress={addOffline} />
         </View>
       </ScrollView>

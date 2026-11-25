@@ -36,13 +36,17 @@ export function TaskItem({
   onToggle,
   onPress,
   showAssignee = true,
+  canToggle = true,
 }: {
   task: Task;
   assignee?: Member;
   doneBy?: Member;
+  /** Called on every tap of the check; when `canToggle` is false it should explain why not. */
   onToggle: () => void;
   onPress?: () => void;
   showAssignee?: boolean;
+  /** False when this person may not tick the task (it's someone else's and they aren't an admin). */
+  canToggle?: boolean;
 }) {
   const { colors } = useTheme();
   const done = !!task.doneAt;
@@ -75,16 +79,23 @@ export function TaskItem({
         hitSlop={10}
         accessibilityRole="checkbox"
         aria-checked={done}
-        accessibilityLabel={done ? copy.markNotDone(task.title) : copy.markDone(task.title)}
+        // The check stays tappable so it can explain itself; the reason is part of its label,
+        // because hints and aria-disabled don't reach screen readers on every platform.
+        accessibilityLabel={
+          (done ? copy.markNotDone(task.title) : copy.markDone(task.title)) + (!canToggle && assignee ? `. ${copy.notYours(assignee.name)}` : '')
+        }
         style={{
           width: 26,
           height: 26,
           borderRadius: 13,
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: done ? colors.success : colors.surface,
+          backgroundColor: done ? colors.success : canToggle ? colors.surface : 'transparent',
           borderWidth: done ? 0 : 1.5,
+          // Someone else's task: a dashed circle shows it isn't yours to tick.
+          borderStyle: canToggle ? 'solid' : 'dashed',
           borderColor: colors.inkMuted,
+          opacity: canToggle || done ? 1 : 0.7,
         }}
       >
         {done ? <Icon name="check" size={16} color={colors.onSuccess} /> : null}

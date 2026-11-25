@@ -30,9 +30,9 @@ export type ColorTokens = {
   onAccent: string;
   accentStrong: string;
   onAccentStrong: string;
-  notice: string;
-  onNotice: string;
-  noticeLabel: string;
+  callout: string;
+  onCallout: string;
+  calloutLabel: string;
   track: string;
   success: string;
   onSuccess: string;
@@ -56,9 +56,9 @@ export const sunlit: ColorTokens = {
   onAccent: amber[950],
   accentStrong: amber[950],
   onAccentStrong: amber[50],
-  notice: '#045DD0',
-  onNotice: amber[50],
-  noticeLabel: amber[300],
+  callout: '#045DD0',
+  onCallout: amber[50],
+  calloutLabel: amber[300],
   track: blue[100],
   success: green[600],
   onSuccess: green[50],
@@ -82,9 +82,9 @@ export const evening: ColorTokens = {
   onAccent: amber[950],
   accentStrong: amber[950],
   onAccentStrong: amber[500],
-  notice: '#3D597B',
-  onNotice: amber[50],
-  noticeLabel: amber[400],
+  callout: '#3D597B',
+  onCallout: amber[50],
+  calloutLabel: amber[400],
   track: '#2F5076',
   success: green[300],
   onSuccess: green[950],

@@ -3,7 +3,7 @@
 
 import { addDays, today } from '../lib/dates';
 import { green, amber } from '../theme/tokens';
-import type { Household, Leave, Member, Notice, Task } from './types';
+import type { Household, Member, Task } from './types';
 
 export const ME = 'm-meera';
 
@@ -18,7 +18,8 @@ export const sampleMembers: Member[] = [
   { id: 'm-meera', name: 'Meera', role: 'admin', color: amber[900], language: 'ml' },
   { id: 'm-sachin', name: 'Sachin', role: 'member', color: green[600], language: 'en' },
   { id: 'm-tanya', name: 'Tanya', role: 'member', color: amber[700], language: 'en' },
-  { id: 'm-rekha', name: 'Rekha', role: 'helper', color: '#045DD0', language: 'ml' },
+  // Doesn't use the app: as admin, Meera ticks off her tasks.
+  { id: 'm-ammamma', name: 'Ammamma', role: 'member', color: '#045DD0', language: 'ml', usesApp: false },
 ];
 
 function at(date: string, time: string): string {
@@ -60,11 +61,12 @@ export function buildSampleTasks(): Task[] {
     task({ title: 'Make evening tea', assigneeId: 'm-tanya', dueDate: t, dueTime: '17:30', repeat: 'daily' }),
     task({ title: 'Take out the recycling', assigneeId: 'm-sachin', dueDate: t, repeat: 'weekly', doneAt: at(t, '08:05'), doneById: 'm-sachin' }),
     task({ title: 'Laundry', assigneeId: 'm-sachin', dueDate: t, dueTime: '19:00', repeat: 'alternate' }),
-    task({ title: 'Sweep the floors', assigneeId: 'm-rekha', dueDate: t, repeat: 'daily', doneAt: at(t, '09:30'), doneById: 'm-rekha' }),
-    task({ title: 'Do the dishes', assigneeId: 'm-rekha', dueDate: t, dueTime: '14:00', repeat: 'daily' }),
+    task({ title: 'Sweep the floors', assigneeId: 'm-tanya', dueDate: t, repeat: 'daily', doneAt: at(t, '09:30'), doneById: 'm-tanya' }),
+    task({ title: 'Do the dishes', assigneeId: 'm-sachin', dueDate: t, dueTime: '14:00', repeat: 'daily' }),
+    task({ title: 'Water the tulsi plant', assigneeId: 'm-ammamma', dueDate: t, dueTime: '07:30', repeat: 'daily' }),
     task({ title: 'Order groceries', assigneeId: null, dueDate: t }),
     // Upcoming
-    task({ title: 'Clean the pooja room', assigneeId: 'm-rekha', dueDate: addDays(t, 1), repeat: 'weekly' }),
+    task({ title: 'Clean the pooja room', assigneeId: ME, dueDate: addDays(t, 1), repeat: 'weekly' }),
     task({ title: 'Book the car service', assigneeId: 'm-sachin', dueDate: addDays(t, 2), dueTime: '11:00' }),
     task({ title: 'Buy a birthday gift for Ammu', assigneeId: ME, dueDate: addDays(t, 3) }),
     task({ title: 'Return library books', assigneeId: 'm-tanya', dueDate: addDays(t, 4) }),
@@ -76,7 +78,7 @@ export function buildSampleTasks(): Task[] {
     ['Fold the laundry', ME, 1, '18:00'], ['Wipe the kitchen counters', ME, 1, '21:00'], ['Water the plants', ME, 1, '07:05'],
     ['Make evening tea', 'm-tanya', 1, '17:40'], ['Feed the fish', 'm-tanya', 2, '08:00'],
     ['Laundry', 'm-sachin', 2, '19:20'], ['Fix the wobbly chair', 'm-sachin', 1, '16:00'], ['Get the gas cylinder refilled', 'm-sachin', 3, '12:00'],
-    ['Do the dishes', 'm-rekha', 1, '14:10'], ['Sweep the floors', 'm-rekha', 1, '09:15'], ['Mop the floors', 'm-rekha', 2, '10:00'],
+    ['Do the dishes', 'm-sachin', 1, '14:10'], ['Sweep the floors', 'm-tanya', 1, '09:15'], ['Mop the floors', ME, 2, '10:00'],
     ['Water the plants', ME, 2, '07:00'], ['Pay the school fees', ME, 3, '11:00'], ['Make evening tea', 'm-tanya', 3, '17:35'],
   ];
   for (const [title, who, daysAgo, time] of history) {
@@ -86,21 +88,7 @@ export function buildSampleTasks(): Task[] {
   return tasks;
 }
 
-export function buildSampleNotices(): Notice[] {
-  return [
-    {
-      id: 'n-1',
-      message: 'Tanya has PTI tomorrow at 11:30 am',
-      authorId: ME,
-      createdAt: new Date(Date.now() - 2 * 3_600_000).toISOString(),
-      showUntil: addDays(today(), 1),
-    },
-  ];
-}
 
-export function buildSampleLeave(): Leave[] {
-  return [{ id: 'l-1', memberId: 'm-rekha', from: addDays(today(), 3), to: addDays(today(), 4), note: 'Family wedding' }];
-}
 
 /** Titles offered under "Add again" in the New task sheet. */
 export const sampleSuggestions = ['Laundry', 'Polish shoes', 'Take out the recycling', 'Water the plants', 'Order groceries'];
