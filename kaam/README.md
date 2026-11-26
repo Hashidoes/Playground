@@ -56,11 +56,15 @@ src/
   theme/               Tokens (Sunlit and Evening) and ThemeProvider
 ```
 
-`src/data/types.ts` matches the planned Supabase tables, so the store in `src/data/store.tsx` can be replaced by the backend without changing screens.
+`src/data/types.ts` matches the Supabase tables, so the store in `src/data/store.tsx` can be replaced by the backend without changing screens.
+
+## Database
+
+`supabase/` holds the database setup (one SQL file to run in Supabase's SQL Editor), the steps for email codes and Google sign-in, and a test suite for the access rules. See [supabase/README.md](supabase/README.md).
 
 ## Not built yet
 
-- Supabase: accounts, households, invites, live sync between phones, saving data.
+- Connecting the app to the database (the setup is written and tested; the app still uses sample data).
 - Push notifications and reminders.
 - Real email codes and Google sign-in (both come with Supabase Auth).
 - A profile photo, and the menu and settings screens (Sign out is on Household for now).
