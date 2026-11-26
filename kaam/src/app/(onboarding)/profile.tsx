@@ -16,15 +16,19 @@ export default function Profile() {
   const [name, setName] = useState(store.draft.name);
   const [language, setLanguage] = useState<Language>(store.draft.language);
   const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
-  function next() {
+  async function next() {
     if (!name.trim()) return setError(copy.emptyName);
-    store.setProfile(name.trim(), language);
+    setBusy(true);
+    const problem = await store.setProfile(name.trim(), language);
+    setBusy(false);
+    if (problem) return setError(problem);
     router.push('/household');
   }
 
   return (
-    <StepScreen title={copy.title} onBack={() => router.back()} backLabel={onboarding.back} primary={{ label: copy.continue, onPress: next }}>
+    <StepScreen title={copy.title} onBack={() => router.back()} backLabel={onboarding.back} primary={{ label: copy.continue, onPress: next, busy }}>
       <Field
         label={copy.nameLabel}
         value={name}

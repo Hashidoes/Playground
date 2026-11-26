@@ -25,7 +25,7 @@ export function StepScreen({
   onBack?: () => void;
   backLabel?: string;
   secondary?: { label: string; onPress: () => void };
-  primary?: { label: string; onPress: () => void; disabled?: boolean };
+  primary?: { label: string; onPress: () => void; disabled?: boolean; busy?: boolean };
 }) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -68,7 +68,7 @@ export function StepScreen({
               <Text variant="bodySemibold" color="inkMuted">{secondary.label}</Text>
             </Pressable>
           ) : null}
-          {primary ? <Button label={primary.label} onPress={primary.onPress} disabled={primary.disabled} style={{ minWidth: 140 }} /> : null}
+          {primary ? <Button label={primary.busy ? 'One moment…' : primary.label} onPress={primary.onPress} disabled={primary.disabled || primary.busy} style={{ minWidth: 140 }} /> : null}
         </View>
       ) : null}
     </KeyboardAvoidingView>

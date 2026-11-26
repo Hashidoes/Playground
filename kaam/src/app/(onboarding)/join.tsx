@@ -14,9 +14,14 @@ export default function Join() {
   const store = useStore();
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
-  function join() {
-    if (!store.joinHousehold(code)) return setError(copy.codeNotFound);
+  async function join() {
+    if (code.length < 7 || busy) return;
+    setBusy(true);
+    const problem = await store.joinHousehold(code);
+    setBusy(false);
+    if (problem) return setError(problem);
     router.push('/joined');
   }
 
@@ -25,7 +30,7 @@ export default function Join() {
       title={copy.joinTitleScreen}
       onBack={() => router.back()}
       backLabel={onboarding.back}
-      primary={{ label: copy.joinButton, onPress: join, disabled: code.length < 7 }}
+      primary={{ label: copy.joinButton, onPress: join, disabled: code.length < 7, busy }}
     >
       <Field
         label={copy.joinTitleScreen}
@@ -38,7 +43,7 @@ export default function Join() {
         returnKeyType="done"
         onSubmitEditing={join}
         error={error}
-        hint={copy.sampleJoinHint}
+        hint={store.isConnected ? undefined : copy.sampleJoinHint}
         style={{ letterSpacing: 2 }}
       />
     </StepScreen>

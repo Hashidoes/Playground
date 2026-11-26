@@ -14,19 +14,31 @@ export default function SignIn() {
   const { colors } = useTheme();
   const [email, setEmail] = useState(store.draft.email);
   const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
-  function send() {
+  async function send() {
     const value = email.trim();
     if (!isValidEmail(value)) return setError(copy.invalidEmail);
-    store.setEmail(value);
+    setBusy(true);
+    const problem = await store.sendCode(value);
+    setBusy(false);
+    if (problem) return setError(problem);
     router.push('/verify');
   }
 
-  // Sample mode: Google sign-in is simulated. With Supabase it opens Google's own sign-in screen.
-  const google = () => router.push('/profile');
+  // Opens Google's own sign-in screen (simulated on sample data).
+  async function google() {
+    setBusy(true);
+    const result = await store.signInWithGoogle();
+    setBusy(false);
+    if (!result.ok) return setError(result.error);
+    if (result.next === 'profile') router.push('/profile');
+    else if (result.next === 'household') router.push('/household');
+    // 'home': the app opens by itself once the household has loaded.
+  }
 
   return (
-    <StepScreen title={copy.title} body={copy.body} onBack={() => router.back()} backLabel={onboarding.back} primary={{ label: copy.sendCode, onPress: send }}>
+    <StepScreen title={copy.title} body={copy.body} onBack={() => router.back()} backLabel={onboarding.back} primary={{ label: copy.sendCode, onPress: send, busy }}>
       <Field
         label={copy.emailLabel}
         value={email}
@@ -50,8 +62,8 @@ export default function SignIn() {
       </View>
 
       <View style={{ gap: space[2] }}>
-        <Button label={copy.google} variant="ghost" onPress={google} />
-        <Text variant="label" color="inkMuted">{copy.sampleGoogleHint}</Text>
+        <Button label={copy.google} variant="ghost" onPress={google} disabled={busy} />
+        {store.isConnected ? null : <Text variant="label" color="inkMuted">{copy.sampleGoogleHint}</Text>}
       </View>
     </StepScreen>
   );

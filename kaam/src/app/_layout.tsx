@@ -3,7 +3,7 @@ import { Stack } from 'expo-router/stack';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import { ToastProvider } from '../components/Toast';
+import { ToastProvider, useToast } from '../components/Toast';
 import { StoreProvider, useStore } from '../data/store';
 import { ThemeProvider, useTheme } from '../theme/ThemeProvider';
 
@@ -11,7 +11,21 @@ SplashScreen.preventAutoHideAsync();
 
 function RootStack() {
   const { colors, isEvening } = useTheme();
-  const { onboarded } = useStore();
+  const { onboarded, ready, onError } = useStore();
+  const toast = useToast();
+
+  // Changes save in the background; if one fails, say so.
+  useEffect(() => {
+    onError((message) => toast({ message }));
+    return () => onError(null);
+  }, [onError, toast]);
+
+  useEffect(() => {
+    if (ready) SplashScreen.hideAsync();
+  }, [ready]);
+
+  // Keep the splash screen up while a saved sign-in is checked.
+  if (!ready) return null;
   return (
     <>
       <StatusBar style={isEvening ? 'light' : 'dark'} />
@@ -33,10 +47,6 @@ function RootStack() {
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({ Inter_300Light, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, Inter_800ExtraBold });
-
-  useEffect(() => {
-    if (loaded || error) SplashScreen.hideAsync();
-  }, [loaded, error]);
 
   // If fonts fail, carry on with system fonts rather than hanging on the splash screen.
   if (!loaded && !error) return null;

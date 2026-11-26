@@ -22,7 +22,14 @@ A note for picking the work up in a new session.
 
 ## Next
 
-1. Apply `supabase/migrations/20261126000000_kaam_init.sql` to the project through the Supabase connector, then check the access rules on the real project.
-2. Turn on email codes (Magic Link template with `{{ .Token }}`) and Google sign-in (see `supabase/README.md`).
-3. Connect the app: supabase-js with persisted sessions, real sign-in, and replace the sample store in `src/data/store.tsx` with Supabase reads, writes and live updates. Keep the store's interface so screens don't change.
-4. Loading, offline and "couldn't save" states.
+Done: the database setup is applied to the project, and the app is connected to it.
+With `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in `.env.local` (git-ignored),
+the app signs in for real and reads and writes the database (`src/lib/supabase.ts`, `src/data/remote.ts`).
+Changes show at once and save in the background; if a save fails the app reloads from the database and
+shows a message. Other phones' changes arrive live. Without those settings it runs on sample data
+(build the preview with `EXPO_NO_DOTENV=1`).
+
+1. Email codes: set up custom SMTP, then put `{{ .Token }}` in the Magic Link template (see `supabase/README.md`).
+2. Google sign-in: Google Cloud OAuth client, the Supabase Google provider, and `kaam://**` as a redirect URL.
+3. Test the signed-in flows end to end against the project (needs a test account).
+4. Optional: move `is_member`, `is_admin` and `my_member_id` to a private schema (security advisor warnings).

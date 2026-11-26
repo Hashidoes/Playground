@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { KaamMark } from '../../components/KaamMark';
 import { Button, Text } from '../../components/primitives';
 import { onboarding as copy } from '../../copy/strings';
+import { useStore } from '../../data/store';
 import { ThemeProvider, useTheme } from '../../theme/ThemeProvider';
 import { radius, space } from '../../theme/tokens';
 
@@ -33,7 +34,8 @@ function Slides() {
     scroller.current?.scrollTo({ x: i * width, animated: true });
     setIndex(i);
   };
-  const start = () => router.push('/sign-in');
+  const store = useStore();
+  const start = () => router.push(store.userId ? (store.draft.name ? '/household' : '/profile') : '/sign-in');
 
   return (
     <View onLayout={onLayout} style={{ flex: 1, backgroundColor: colors.surface }}>

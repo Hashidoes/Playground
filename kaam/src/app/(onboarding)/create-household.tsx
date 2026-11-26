@@ -13,15 +13,19 @@ export default function CreateHousehold() {
   const [name, setName] = useState('');
   const [kind, setKind] = useState<HouseholdKind>('family');
   const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
-  function create() {
-    if (!name.trim()) return setError(copy.emptyName);
-    store.createHousehold(name.trim(), kind);
+  async function create() {
+    if (!name.trim() || busy) return setError(name.trim() ? null : copy.emptyName);
+    setBusy(true);
+    const problem = await store.createHousehold(name.trim(), kind);
+    setBusy(false);
+    if (problem) return setError(problem);
     router.push('/invite');
   }
 
   return (
-    <StepScreen title={copy.nameTitle} onBack={() => router.back()} backLabel={onboarding.back} primary={{ label: copy.create, onPress: create }}>
+    <StepScreen title={copy.nameTitle} onBack={() => router.back()} backLabel={onboarding.back} primary={{ label: copy.create, onPress: create, busy }}>
       <Field
         label={copy.nameLabel}
         value={name}

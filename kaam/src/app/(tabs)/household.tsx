@@ -23,23 +23,19 @@ export default function Household() {
   const todays = todaysTasks(store.tasks);
   const adminCount = store.members.filter((m) => m.role === 'admin').length;
 
-  function toggleAdmin(m: Member) {
-    if (m.role === 'admin') {
-      if (adminCount === 1) return toast({ message: copy.lastAdmin });
-      store.setRole(m.id, 'member');
-      toast({ message: copy.noLongerAdmin(m.name) });
-    } else {
-      store.setRole(m.id, 'admin');
-      toast({ message: copy.nowAdmin(m.name) });
-    }
+  async function toggleAdmin(m: Member) {
+    if (m.role === 'admin' && adminCount === 1) return toast({ message: copy.lastAdmin });
     setManaging(null);
+    const makeAdmin = m.role !== 'admin';
+    const problem = await store.setRole(m.id, makeAdmin ? 'admin' : 'member');
+    toast({ message: problem ?? (makeAdmin ? copy.nowAdmin(m.name) : copy.noLongerAdmin(m.name)) });
   }
 
-  function remove(m: Member) {
-    store.removeMember(m.id);
-    toast({ message: copy.removed(m.name) });
+  async function remove(m: Member) {
     setManaging(null);
     setConfirmRemove(false);
+    const problem = await store.removeMember(m.id);
+    toast({ message: problem ?? copy.removed(m.name) });
   }
 
   const row = (m: Member) => {

@@ -20,6 +20,7 @@ export default function Verify() {
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [wait, setWait] = useState(RESEND_SECONDS);
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     if (wait <= 0) return;
@@ -27,14 +28,24 @@ export default function Verify() {
     return () => clearTimeout(t);
   }, [wait]);
 
-  function check(value: string) {
-    if (value.length < LENGTH) return;
-    // Sample mode: until Supabase sends real texts, any code but 000000 is accepted.
-    if (value === '000000') {
-      setError(copy.wrongCode);
+  async function check(value: string) {
+    if (value.length < LENGTH || busy) return;
+    setBusy(true);
+    const result = await store.verifyCode(value);
+    setBusy(false);
+    if (!result.ok) {
+      setError(result.error);
       return;
     }
-    router.push('/profile');
+    if (result.next === 'profile') router.push('/profile');
+    else if (result.next === 'household') router.push('/household');
+    // 'home': a returning member; the app opens by itself.
+  }
+
+  async function resend() {
+    setWait(RESEND_SECONDS);
+    const problem = await store.sendCode(store.draft.email);
+    toast({ message: problem ?? copy.resent });
   }
 
   function onChange(v: string) {
@@ -51,7 +62,7 @@ export default function Verify() {
       onBack={() => router.back()}
       backLabel={onboarding.back}
       secondary={{ label: copy.changeEmail, onPress: () => router.back() }}
-      primary={{ label: copy.verify, onPress: () => check(code), disabled: code.length < LENGTH }}
+      primary={{ label: copy.verify, onPress: () => check(code), disabled: code.length < LENGTH, busy }}
     >
       <Pressable onPress={() => input.current?.focus()} accessible={false}>
         <View style={{ flexDirection: 'row', gap: space[2] }}>
@@ -100,7 +111,7 @@ export default function Verify() {
       ) : (
         <Pressable
           accessibilityRole="button"
-          onPress={() => { setWait(RESEND_SECONDS); toast({ message: copy.resent }); }}
+          onPress={resend}
           hitSlop={8}
           style={{ alignSelf: 'flex-start' }}
         >
@@ -108,7 +119,7 @@ export default function Verify() {
         </Pressable>
       )}
 
-      <Text variant="label" color="inkMuted">{copy.sampleHint}</Text>
+      {store.isConnected ? null : <Text variant="label" color="inkMuted">{copy.sampleHint}</Text>}
     </StepScreen>
   );
 }

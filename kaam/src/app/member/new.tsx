@@ -19,13 +19,18 @@ export default function AddMember() {
   const insets = useSafeAreaInsets();
   const [name, setName] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
   const close = () => (router.canGoBack() ? router.back() : router.replace('/household'));
 
-  function addOffline() {
+  async function addOffline() {
     const n = name.trim();
     if (!n) return setError(copy.emptyName);
-    store.addMember(n);
+    if (busy) return;
+    setBusy(true);
+    const problem = await store.addMember(n);
+    setBusy(false);
+    if (problem) return setError(problem);
     toast({ message: copy.added(n) });
     close();
   }
@@ -65,7 +70,7 @@ export default function AddMember() {
             onSubmitEditing={addOffline}
             error={error}
           />
-          <Button label={copy.add(name.trim())} variant="secondary" icon="plus" onPress={addOffline} />
+          <Button label={copy.add(name.trim())} variant="secondary" icon="plus" onPress={addOffline} disabled={busy} />
         </View>
       </ScrollView>
     </View>
