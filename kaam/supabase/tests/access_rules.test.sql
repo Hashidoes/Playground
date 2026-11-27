@@ -181,6 +181,45 @@ select test.ok((select role = 'admin' from public.members where id = :'asha_m'),
 select test.ok((select count(*) = 0 from public.tasks where id = :'bank'), 'leaving deletes your private tasks');
 select test.ok((select count(*) = 1 from public.tasks where id = :'laundry'), 'your shared tasks stay with the household');
 
+-- ---------- The last person to leave closes the household ----------
+-- Ravi starts a second home, adds Nani (no app), then Kiran joins.
+select set_config('request.jwt.claims', json_build_object('sub', :'ravi')::text, false) \g /dev/null
+set role authenticated;
+select (public.create_household('Ravi''s home', 'family')).id as h3 \gset
+select (public.add_member_without_app(:'h3', 'Nani')).id as nani \gset
+select invite_code as code3 from public.households where id = :'h3' \gset
+reset role; select set_config('request.jwt.claims', json_build_object('sub', :'kiran')::text, false) \g /dev/null
+set role authenticated;
+select public.join_household(:'code3') \g /dev/null
+select id as kiran_m3 from public.members where household_id = :'h3' and user_id = auth.uid() \gset
+insert into public.tasks (household_id, title, assignee_id, created_by, due_date)
+values (:'h3', 'Buy milk', :'nani', :'kiran_m3', public.today_ist()) returning id as milk \gset
+-- Someone outside the household calling leave changes nothing.
+reset role; select set_config('request.jwt.claims', json_build_object('sub', :'asha')::text, false) \g /dev/null
+set role authenticated;
+select public.leave_household(:'h3') \g /dev/null
+reset role;
+select test.ok((select count(*) = 3 from public.members where household_id = :'h3'), 'leaving a household you are not in changes nothing');
+-- Ravi (admin) leaves: Kiran, who uses the app, takes over rather than Nani who joined earlier.
+select set_config('request.jwt.claims', json_build_object('sub', :'ravi')::text, false) \g /dev/null
+set role authenticated;
+select public.leave_household(:'h3') \g /dev/null
+reset role;
+select test.ok((select role = 'admin' from public.members where id = :'kiran_m3'), 'the new admin is someone who uses the app');
+select test.ok((select role = 'member' from public.members where id = :'nani'), 'someone without the app is not made admin');
+-- Kiran leaves too: nobody with the app is left, so the household goes.
+select set_config('request.jwt.claims', json_build_object('sub', :'kiran')::text, false) \g /dev/null
+set role authenticated;
+select public.leave_household(:'h3') \g /dev/null
+reset role;
+select test.ok((select count(*) = 0 from public.households where id = :'h3'), 'when the last person with the app leaves, the household is deleted');
+select test.ok((select count(*) = 0 from public.members where household_id = :'h3'), 'people added without the app go with it');
+select test.ok((select count(*) = 0 from public.tasks where id = :'milk'), 'its tasks go with it');
+select set_config('request.jwt.claims', json_build_object('sub', :'asha')::text, false) \g /dev/null
+set role authenticated;
+select test.refused(format('select public.join_household(%L)', :'code3'), 'find that code', 'its invite code stops working');
+reset role;
+
 -- ---------- Profile names follow you ----------
 select set_config('request.jwt.claims', json_build_object('sub', :'asha')::text, false) \g /dev/null
 set role authenticated;

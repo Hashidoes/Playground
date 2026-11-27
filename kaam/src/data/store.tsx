@@ -98,9 +98,10 @@ export function newId(_prefix?: string): string {
 /** Someone leaving: their private tasks go, their open shared tasks are left for anyone. */
 function withoutMember(state: State, id: string): Pick<State, 'members' | 'tasks'> {
   let members = state.members.filter((m) => m.id !== id);
-  // Like WhatsApp: if the last admin goes, the longest-standing member becomes admin.
+  // Like WhatsApp: if the last admin goes, the longest-standing member who uses the app becomes admin.
   if (members.length && !members.some((m) => m.role === 'admin')) {
-    members = members.map((m, i) => (i === 0 ? { ...m, role: 'admin' } : m));
+    const next = members.find((m) => m.usesApp !== false) ?? members[0];
+    members = members.map((m) => (m === next ? { ...m, role: 'admin' } : m));
   }
   const tasks = state.tasks
     .filter((t) => !(t.private && t.createdById === id))
