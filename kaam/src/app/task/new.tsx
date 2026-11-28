@@ -2,26 +2,37 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { DayStrip } from '../../components/DayStrip';
 import { Button, Chip, ChoiceRow, Icon, IconButton, SwitchLook, Text } from '../../components/primitives';
+import { TimeWheel } from '../../components/TimeWheel';
 import { useToast } from '../../components/Toast';
 import { newTask as copy, reminderLabels, repeatLabels, tasks as taskCopy } from '../../copy/strings';
 import { useStore } from '../../data/store';
 import type { Reminder, Repeat, Time } from '../../data/types';
-import { addDays, formatShortDate, formatTime, timeFromDate, today } from '../../lib/dates';
+import { addDays, formatTime, relativeDay, timeFromDate, today } from '../../lib/dates';
 import { useTheme } from '../../theme/ThemeProvider';
 import { radius, space, type } from '../../theme/tokens';
 
-const TIMES: Time[] = ['07:00', '09:00', '11:00', '13:00', '15:00', '17:00', '18:30', '20:00', '21:30'];
 const REPEATS: Repeat[] = ['none', 'daily', 'alternate', 'weekly', 'fortnightly', 'monthly'];
 const REMINDERS: Reminder[] = ['off', 'at_time', '15_min', '1_hour'];
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, value, children }: { label: string; value?: string; children: React.ReactNode }) {
   return (
     <View style={{ gap: space[2] }}>
-      <Text variant="caption" color="inkMuted">{label}</Text>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: space[3] }}>
+        <Text variant="caption" color="inkMuted">{label}</Text>
+        {value ? <Text variant="caption" color="highlight">{value}</Text> : null}
+      </View>
       {children}
     </View>
   );
+}
+
+/** A sensible first time to offer: the next whole hour today (if there's one left), otherwise 9 am. */
+function suggestedTime(date: string, now: string): Time {
+  if (date !== now) return '09:00';
+  const next = new Date().getHours() + 1;
+  return next <= 23 ? `${String(next).padStart(2, '0')}:00` : '23:55';
 }
 
 export default function TaskSheet() {
@@ -42,11 +53,14 @@ export default function TaskSheet() {
   const [repeat, setRepeat] = useState<Repeat>(existing?.repeat ?? 'none');
   const [reminder, setReminder] = useState<Reminder>(existing?.reminder ?? 'off');
   const [note, setNote] = useState(existing?.note ?? '');
-  const [pickingDate, setPickingDate] = useState(dueDate !== now && dueDate !== addDays(now, 1));
   const [error, setError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const dates = useMemo(() => Array.from({ length: 21 }, (_, i) => addDays(now, i)), [now]);
+  // Two months ahead, plus the task's own date if it's further out.
+  const dates = useMemo(() => {
+    const days = Array.from({ length: 60 }, (_, i) => addDays(now, i));
+    return existing && existing.dueDate > days[days.length - 1] ? [...days, existing.dueDate] : days;
+  }, [now, existing]);
   const suggestions = store.suggestions.filter((s) => s.toLowerCase().includes(title.trim().toLowerCase()) && s !== title).slice(0, 5);
 
   const close = () => (router.canGoBack() ? router.back() : router.replace('/'));
@@ -76,9 +90,8 @@ export default function TaskSheet() {
   }
 
   const people = [store.me, ...store.members.filter((m) => m.id !== store.meId)];
-  // For today, only offer times that are still ahead (keep a time an existing task already has).
-  const nowTime = timeFromDate(new Date());
-  const times = dueDate === now ? TIMES.filter((t) => t > nowTime || t === dueTime) : TIMES;
+  // A time earlier today is flagged straight away (saving still checks it).
+  const timePassed = !existing && dueDate === now && dueTime !== null && dueTime < timeFromDate(new Date());
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: colors.surface }}>
@@ -140,34 +153,24 @@ export default function TaskSheet() {
         </Field>
         )}
 
-        <Field label={copy.when}>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space[2] }}>
-            <Chip label={copy.today} selected={!pickingDate && dueDate === now} onPress={() => { setDueDate(now); setPickingDate(false); }} />
-            <Chip label={copy.tomorrow} selected={!pickingDate && dueDate === addDays(now, 1)} onPress={() => { setDueDate(addDays(now, 1)); setPickingDate(false); }} />
-            <Chip
-              label={pickingDate ? formatShortDate(dueDate) : copy.pickDate}
-              selected={pickingDate}
-              onPress={() => {
-                setPickingDate(true);
-                // Move off today/tomorrow so the chip and the selected date agree.
-                if (dueDate <= addDays(now, 1)) setDueDate(addDays(now, 2));
-              }}
-            />
-          </View>
-          {pickingDate ? (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: space[2] }}>
-              {dates.slice(2).map((d) => (
-                <Chip key={d} label={formatShortDate(d)} selected={dueDate === d} onPress={() => setDueDate(d)} />
-              ))}
-            </ScrollView>
-          ) : null}
+        <Field label={copy.when} value={relativeDay(dueDate, now)}>
+          <DayStrip days={dates} value={dueDate} onChange={setDueDate} label={copy.when} todayLabel={copy.today} />
         </Field>
 
-        <Field label={copy.time}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: space[2] }}>
-            <Chip label={copy.anyTime} selected={dueTime === null} onPress={() => setDueTime(null)} />
-            {times.map((t) => <Chip key={t} label={formatTime(t)} selected={dueTime === t} onPress={() => setDueTime(t)} />)}
-          </ScrollView>
+        <Field label={copy.time} value={dueTime ? formatTime(dueTime) : undefined}>
+          <ChoiceRow
+            label={copy.time}
+            value={dueTime ? 'set' : 'any'}
+            onChange={(v) => setDueTime(v === 'any' ? null : suggestedTime(dueDate, now))}
+            options={[
+              { value: 'any', label: copy.anyTime },
+              { value: 'set', label: copy.setTime },
+            ]}
+          />
+          {dueTime ? (
+            <TimeWheel value={dueTime} onChange={(t) => { setDueTime(t); setError(null); }} labels={copy.wheel} />
+          ) : null}
+          {timePassed ? <Text variant="label" color="danger" accessibilityLiveRegion="polite">{copy.timePassed}</Text> : null}
         </Field>
 
         <Field label={copy.repeat}>

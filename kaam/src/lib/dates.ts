@@ -113,3 +113,8 @@ export function startOfWeek(s: ISODate): ISODate {
 export function startOfMonth(s: ISODate): ISODate {
   return s.slice(0, 8) + '01';
 }
+
+/** Dec */
+export function monthShort(s: ISODate): string {
+  return MONTHS[fromISODate(s).getMonth()].slice(0, 3);
+}
