@@ -171,18 +171,12 @@ export const system = {
 };
 
 export const onboarding = {
-  tagline: 'Housework, shared.',
-  slides: [
-    { title: 'One list for the whole house', body: "See what needs doing, who's on it and what's already done." },
-    { title: 'Hand it off in a tap', body: 'Give a task to anyone at home, set it to repeat, and Kaam reminds them.' },
-    { title: 'See the effort', body: "Every finished task counts. Watch your household's week add up." },
-  ],
-  next: 'Next',
-  skip: 'Skip',
-  getStarted: 'Get started',
+  title: 'Share the load',
+  body: "One list for everyone at home. See what needs doing, who's on it and what's done.",
+  letsGo: "Let's go!",
+  artLabel: 'Someone takes a shirt from a laundry basket and drops it into the washing machine.',
   back: 'Back',
   continue: 'Continue',
-  slideLabel: (i: number, n: number) => `Slide ${i} of ${n}`,
 };
 
 export const signIn = {
@@ -213,7 +207,6 @@ export const profile = {
   nameLabel: 'Your name',
   namePlaceholder: 'e.g. Meera',
   emptyName: 'Add your name so others know who you are.',
-  languageLabel: 'Greet me in',
   continue: 'Continue',
 };
 
@@ -227,8 +220,6 @@ export const setup = {
   nameLabel: 'Household name',
   namePlaceholder: 'e.g. The Nair home, Flat 4B',
   emptyName: 'Give your household a name.',
-  kindLabel: 'Who lives here?',
-  kinds: { family: 'Family', roommates: 'Roommates' },
   create: 'Create household',
   inviteTitle: 'Invite your household',
   inviteBody: 'Share this code with the people you live with. It works for 7 days.',

@@ -214,7 +214,7 @@ type StoreValue = Omit<State, 'tasks'> & {
   signInWithGoogle: () => Promise<SignInResult>;
   setEmail: (email: string) => void;
   setProfile: (name: string, language: Language) => Promise<string | null>;
-  createHousehold: (name: string, kind: HouseholdKind) => Promise<string | null>;
+  createHousehold: (name: string) => Promise<string | null>;
   /** Returns an error message, or null when it worked. */
   joinHousehold: (code: string) => Promise<string | null>;
   finishOnboarding: () => void;
@@ -452,7 +452,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           return remote.friendlyError(e as { message?: string });
         }
       },
-      createHousehold: async (name, kind) => {
+      createHousehold: async (name) => {
+        const kind: HouseholdKind = 'family';
         if (!db || !state.userId) {
           dispatch({ type: 'createHousehold', household: { id: newId(), name, kind, inviteCode: makeInviteCode() }, me: newSampleMe('admin', 0) });
           return null;

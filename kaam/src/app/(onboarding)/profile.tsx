@@ -1,27 +1,19 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { View } from 'react-native';
 import { Field, StepScreen } from '../../components/onboarding';
-import { ChoiceRow, Text } from '../../components/primitives';
-import { greetings, languageNames, onboarding, profile as copy } from '../../copy/strings';
+import { onboarding, profile as copy } from '../../copy/strings';
 import { useStore } from '../../data/store';
-import type { Language } from '../../data/types';
-import { dayPart } from '../../lib/dates';
-import { space } from '../../theme/tokens';
-
-const LANGUAGES: Language[] = ['en', 'ml', 'hi'];
 
 export default function Profile() {
   const store = useStore();
   const [name, setName] = useState(store.draft.name);
-  const [language, setLanguage] = useState<Language>(store.draft.language);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   async function next() {
     if (!name.trim()) return setError(copy.emptyName);
     setBusy(true);
-    const problem = await store.setProfile(name.trim(), language);
+    const problem = await store.setProfile(name.trim(), store.draft.language);
     setBusy(false);
     if (problem) return setError(problem);
     router.push('/household');
@@ -38,19 +30,11 @@ export default function Profile() {
         autoComplete="given-name"
         autoCapitalize="words"
         autoFocus
-        returnKeyType="next"
+        returnKeyType="done"
+        onSubmitEditing={next}
         maxLength={30}
         error={error}
       />
-      <View style={{ gap: space[2] }}>
-        <Text variant="bodySemibold">{copy.languageLabel}</Text>
-        <ChoiceRow label={copy.languageLabel} value={language} onChange={setLanguage} options={LANGUAGES.map((l) => ({ value: l, label: languageNames[l] }))} />
-        {/* Preview of the greeting this choice gives on Home. */}
-        <Text variant="heading" color="highlight" style={{ marginTop: space[3] }} accessibilityLanguage={language}>
-          {greetings[language][dayPart()].replace('\n', ' ')}
-          {name.trim() ? `, ${name.trim()}` : ''}
-        </Text>
-      </View>
     </StepScreen>
   );
 }
