@@ -11,7 +11,9 @@ import { useStore } from '../../data/store';
 import { ThemeProvider, useTheme } from '../../theme/ThemeProvider';
 import { space } from '../../theme/tokens';
 
-const ART_MAX_WIDTH = 420;
+// The stamp sits inset from the text, so it reads as a picture rather than a banner.
+const ART_SHARE = 0.8; // of the content width
+const ART_MAX_WIDTH = 320;
 
 function Welcome() {
   const { colors } = useTheme();
@@ -22,7 +24,7 @@ function Welcome() {
   // The illustration takes whatever room is left, without stretching.
   const onArtLayout = (e: LayoutChangeEvent) => {
     const { width, height } = e.nativeEvent.layout;
-    setArtWidth(Math.min(width, height * WELCOME_ART_RATIO, ART_MAX_WIDTH));
+    setArtWidth(Math.min(width * ART_SHARE, height * WELCOME_ART_RATIO, ART_MAX_WIDTH));
   };
 
   // Someone already signed in (but not in a household yet) skips sign-in.
@@ -30,7 +32,7 @@ function Welcome() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.surface, paddingTop: insets.top + space[4], paddingBottom: insets.bottom + space[4] }}>
-      <View style={{ width: '100%', maxWidth: 520, alignSelf: 'center', flex: 1, paddingHorizontal: space[4], gap: space[5] }}>
+      <View style={{ width: '100%', maxWidth: 520, alignSelf: 'center', flex: 1, paddingHorizontal: space[6], gap: space[5] }}>
         <KaamMark width={44} />
         <View onLayout={onArtLayout} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
           {artWidth > 0 ? (
