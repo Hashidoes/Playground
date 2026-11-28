@@ -174,7 +174,7 @@ export const onboarding = {
   title: 'Share the load',
   body: "One list for everyone at home. See what needs doing, who's on it and what's done.",
   letsGo: "Let's go!",
-  artLabel: 'Someone takes a shirt from a laundry basket and drops it into the washing machine.',
+  artLabel: 'A stamp-style picture of someone loading a washing machine with a basket of laundry.',
   back: 'Back',
   continue: 'Continue',
 };

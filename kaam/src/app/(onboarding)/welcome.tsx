@@ -4,14 +4,13 @@ import { useState } from 'react';
 import { View, type LayoutChangeEvent } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { KaamMark } from '../../components/KaamMark';
-import { LaundryLoop } from '../../components/LaundryLoop';
+import { WELCOME_ART_RATIO, WelcomeAnimation } from '../../components/WelcomeAnimation';
 import { Button, Text } from '../../components/primitives';
 import { onboarding as copy } from '../../copy/strings';
 import { useStore } from '../../data/store';
 import { ThemeProvider, useTheme } from '../../theme/ThemeProvider';
 import { space } from '../../theme/tokens';
 
-const ART_RATIO = 589 / 647; // width / height of the illustration
 const ART_MAX_WIDTH = 420;
 
 function Welcome() {
@@ -23,7 +22,7 @@ function Welcome() {
   // The illustration takes whatever room is left, without stretching.
   const onArtLayout = (e: LayoutChangeEvent) => {
     const { width, height } = e.nativeEvent.layout;
-    setArtWidth(Math.min(width, height * ART_RATIO, ART_MAX_WIDTH));
+    setArtWidth(Math.min(width, height * WELCOME_ART_RATIO, ART_MAX_WIDTH));
   };
 
   // Someone already signed in (but not in a household yet) skips sign-in.
@@ -36,7 +35,7 @@ function Welcome() {
         <View onLayout={onArtLayout} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
           {artWidth > 0 ? (
             <View style={{ width: artWidth }}>
-              <LaundryLoop accessibilityLabel={copy.artLabel} />
+              <WelcomeAnimation accessibilityLabel={copy.artLabel} />
             </View>
           ) : null}
         </View>
