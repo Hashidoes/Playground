@@ -49,12 +49,11 @@ export function StepScreen({
         <View style={{ gap: space[5] }}>{children}</View>
       </ScrollView>
       {primary || secondary ? (
+        // One large main button across the screen; with a second choice, the two share it 50/50.
         <View
           style={{
             flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: secondary ? 'space-between' : 'flex-end',
-            gap: space[4],
+            gap: space[3],
             paddingHorizontal: space[4],
             paddingTop: space[3],
             paddingBottom: insets.bottom + space[4],
@@ -63,12 +62,15 @@ export function StepScreen({
             alignSelf: 'center',
           }}
         >
-          {secondary ? (
-            <Pressable onPress={secondary.onPress} accessibilityRole="button" hitSlop={12} style={{ paddingVertical: space[3] }}>
-              <Text variant="bodySemibold" color="inkMuted">{secondary.label}</Text>
-            </Pressable>
+          {secondary ? <Button label={secondary.label} variant="secondary" onPress={secondary.onPress} style={{ flex: 1 }} /> : null}
+          {primary ? (
+            <Button
+              label={primary.busy ? 'One moment…' : primary.label}
+              onPress={primary.onPress}
+              disabled={primary.disabled || primary.busy}
+              style={{ flex: 1 }}
+            />
           ) : null}
-          {primary ? <Button label={primary.busy ? 'One moment…' : primary.label} onPress={primary.onPress} disabled={primary.disabled || primary.busy} style={{ minWidth: 140 }} /> : null}
         </View>
       ) : null}
     </KeyboardAvoidingView>

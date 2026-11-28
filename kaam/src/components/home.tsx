@@ -120,7 +120,12 @@ export function ProgressGauge({
             <Text variant="stat" style={{ fontVariant: ['tabular-nums'] }}>{`${v}%`}</Text>
             <Text variant="label" color="inkMuted">{copy.gaugeCaption}</Text>
           </View>
-        ) : null}
+        ) : (
+          // Zero state: a quiet "0 tasks" in the middle of the empty dial. The headline above says it in words.
+          <View aria-hidden style={{ position: 'absolute', left: 0, right: 0, top: '40%', alignItems: 'center' }}>
+            <Text variant="title" color="inkMuted" style={{ fontSize: 36, lineHeight: 44, opacity: 0.45 }}>{gaugeZero.count}</Text>
+          </View>
+        )}
       </View>
     </View>
   );

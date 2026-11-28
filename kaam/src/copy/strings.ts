@@ -56,6 +56,7 @@ export function gaugeMessage(done: number, total: number): string {
 export const gaugeZero = {
   title: 'Nothing planned today',
   body: 'Enjoy the quiet, or add something for today.',
+  count: '0 tasks',
 };
 
 export const tasks = {

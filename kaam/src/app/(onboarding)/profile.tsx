@@ -11,7 +11,7 @@ export default function Profile() {
   const [busy, setBusy] = useState(false);
 
   async function next() {
-    if (!name.trim()) return setError(copy.emptyName);
+    if (!name.trim()) return;
     setBusy(true);
     const problem = await store.setProfile(name.trim(), store.draft.language);
     setBusy(false);
@@ -20,7 +20,7 @@ export default function Profile() {
   }
 
   return (
-    <StepScreen title={copy.title} onBack={() => router.back()} backLabel={onboarding.back} primary={{ label: copy.continue, onPress: next, busy }}>
+    <StepScreen title={copy.title} onBack={() => router.back()} backLabel={onboarding.back} primary={{ label: copy.continue, onPress: next, busy, disabled: !name.trim() }}>
       <Field
         label={copy.nameLabel}
         value={name}
@@ -34,6 +34,7 @@ export default function Profile() {
         onSubmitEditing={next}
         maxLength={30}
         error={error}
+        hint={copy.emptyName}
       />
     </StepScreen>
   );
