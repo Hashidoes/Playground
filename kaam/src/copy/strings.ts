@@ -171,8 +171,8 @@ export const system = {
 };
 
 export const onboarding = {
-  title: 'Share the load',
-  body: "One list for everyone at home. See what needs doing, who's on it and what's done.",
+  title: 'Welcome to Kaam',
+  body: "The shared to-do list for your home. Plan the chores, hand them out and see what's done, together.",
   letsGo: "Let's go!",
   artLabel: 'A stamp-style picture of someone loading a washing machine with a basket of laundry.',
   back: 'Back',
