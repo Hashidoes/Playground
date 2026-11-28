@@ -42,8 +42,8 @@ function Welcome() {
           ) : null}
         </View>
         <View style={{ gap: space[2] }}>
-          <Text variant="title" color="highlight" accessibilityRole="header">{copy.title}</Text>
-          <Text variant="bodyLarge">{copy.body}</Text>
+          <Text variant="title" color="highlight" accessibilityRole="header" style={{ textAlign: 'center' }}>{copy.title}</Text>
+          <Text variant="bodyLarge" style={{ textAlign: 'center' }}>{copy.body}</Text>
         </View>
         <Button label={copy.letsGo} onPress={start} />
       </View>
