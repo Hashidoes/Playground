@@ -15,6 +15,7 @@ import { space } from '../../theme/tokens';
 const ART_SHARE = 0.8; // of the content width
 const ART_MAX_WIDTH = 320;
 const ART_TO_TITLE = 56; // space between the stamp and the title
+const BUTTON_FROM_BOTTOM = 48; // the button's distance from the bottom of the screen
 
 function Welcome() {
   const { colors } = useTheme();
@@ -35,7 +36,7 @@ function Welcome() {
   const start = () => router.push(store.userId ? (store.draft.name ? '/household' : '/profile') : '/sign-in');
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.surface, paddingTop: insets.top + space[4], paddingBottom: insets.bottom + space[4] }}>
+    <View style={{ flex: 1, backgroundColor: colors.surface, paddingTop: insets.top + space[4], paddingBottom: Math.max(BUTTON_FROM_BOTTOM, insets.bottom + space[2]) }}>
       <View style={{ width: '100%', maxWidth: 520, alignSelf: 'center', flex: 1, paddingHorizontal: space[6], gap: space[5] }}>
         <KaamMark width={44} />
         <View onLayout={onArea} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
